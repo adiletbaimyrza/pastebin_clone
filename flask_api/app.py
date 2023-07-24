@@ -4,7 +4,7 @@ from flask_serialize import FlaskSerialize
 import uuid
 from datetime import datetime
 
-from api.cutils import add_utc_minutes, is_expired
+from cutils import add_utc_minutes, is_expired
 
 # create an extension
 db = SQLAlchemy()
