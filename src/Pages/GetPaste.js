@@ -53,12 +53,11 @@ const GetPaste = () => {
         <div>
             {pasteContent ? (
                 <div>
-                    <h3>Paste Content:</h3>
                     <pre>{pasteContent}</pre>
                 </div>
             ) : (
                 <div>
-                    <p>Loading paste...</p>
+                    <p>Paste expired...</p>
                 </div>
             )}
         </div>
