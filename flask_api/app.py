@@ -1,29 +1,30 @@
-from cutils import add_utc_minutes, is_expired
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_serialize import FlaskSerialize
+import os
 import uuid
 from datetime import datetime
-import os
-from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, jsonify, request
+from flask_serialize import FlaskSerialize
+from cutils import add_utc_minutes, is_expired
+from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
+# Load environment variables from .env file
 load_dotenv()
 
-# create an extension
+# Create an extension
 db = SQLAlchemy()
-# create an app
+# Create an app
 app = Flask(__name__)
 
-# app configurations
+# App configurations
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastes.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 
-# initialize the app with the extension
+# Initialize the app with the extension
 db.init_app(app)
 
-# create a flask-serialize mixin instance
+# Create a flask-serialize mixin instance
 fs_mixin = FlaskSerialize(db)
 
 # Paste model
@@ -40,39 +41,39 @@ class Paste(db.Model, fs_mixin):
         return f'<Paste {self.id}>'
 
 
-# create a database before app runs
+# Create a database before the app runs
 with app.app_context():
     db.create_all()
 
-# retrieve the connection string from the environment variable
+# Retrieve the connection string from the environment variable
 connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-# container name in which pastes will be stored in the storage account
+# Container name in which pastes will be stored in the storage account
 container_name = "pastes"
 
-# create a blob service client to interact with the storage account
+# Create a blob service client to interact with the storage account
 blob_service_client = BlobServiceClient.from_connection_string(
     conn_str=connect_str)
 try:
-    # get container client to interact with the container in which pastes will be stored
+    # Get container client to interact with the container in which pastes will be stored
     container_client = blob_service_client.get_container_client(
         container=container_name)
-    # get properties of the container to force an exception to be thrown if the container does not exist
+    # Get properties of the container to force an exception to be thrown if the container does not exist
     container_client.get_container_properties()
 except Exception as e:
-    # create a container in the storage account if it does not exist
+    # Create a container in the storage account if it does not exist
     container_client = blob_service_client.create_container(container_name)
 
 
 @app.post('/post')
 def post():
-    # create a Paste model instance from json
+    # Create a Paste model instance from JSON
     new_paste = Paste(
         id=str(uuid.uuid4()),
         blob_url="",  # Initialize the blob_url, it will be set after blob upload
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_add=request.json['minutes_to_live']))
 
-    # add to the database
+    # Add to the database
     db.session.add(new_paste)
     db.session.commit()
 
@@ -87,20 +88,20 @@ def post():
     new_paste.blob_url = blob_client.url
     db.session.commit()
 
-    # return JSON of the created paste
+    # Return JSON of the created paste
     return Paste.fs_get_delete_put_post(new_paste.id), 201
 
 
 @app.get('/get/<uuid:id>')
 def get_paste(id):
-    # query the Paste model by id using get()
+    # Query the Paste model by ID using get()
     paste = Paste.query.get(str(id))
 
-    # check if the paste exists in the database
+    # Check if the paste exists in the database
     if paste:
-        # if exists, check for expiration
+        # If exists, check for expiration
         if is_expired(paste.expire_at):
-            # return 410 Gone status code if the Paste is expired
+            # Return 410 Gone status code if the Paste is expired
             return 'Paste is expired', 410
         else:
             # Fetch the content from Azure Blob Storage using the blob URL
@@ -108,7 +109,7 @@ def get_paste(id):
             content = blob_client.download_blob().readall().decode("utf-8")
             return jsonify({"id": paste.id, "content": content}), 200
     else:
-        # return 404 Not Found status code if paste not found
+        # Return 404 Not Found status code if paste not found
         return 'Paste not found', 404
 
 
