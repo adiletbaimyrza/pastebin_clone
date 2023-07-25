@@ -2,17 +2,24 @@ import React, { useState } from 'react';
 
 const PostPaste = () => {
     const [content, setContent] = useState('');
+    const [minutes, setMinutes] = useState(60); // Default to 60 minutes
     const [pasteId, setPasteId] = useState(null);
 
     const handleContentChange = (event) => {
         setContent(event.target.value);
     };
 
+    const handleMinutesChange = (event) => {
+        // Ensure the minutes value is between 1 and 60
+        const newMinutes = Math.max(1, Math.min(60, event.target.value));
+        setMinutes(newMinutes);
+    };
+
     const handlePostClick = () => {
         // Prepare the JSON data to be sent
         const pasteData = {
             content: content,
-            minutes_to_live: 60, // Change this value to set the expiration time in minutes
+            minutes_to_live: minutes,
         };
 
         // Send the JSON data to the '/post' endpoint
@@ -51,6 +58,16 @@ const PostPaste = () => {
                 placeholder="Enter your text here..."
             />
             <br />
+            <label>
+                Timer (minutes):
+                <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={minutes}
+                    onChange={handleMinutesChange}
+                />
+            </label>
             <button onClick={handlePostClick}>Post Paste</button>
 
             {/* Display the pasteId if it exists */}
