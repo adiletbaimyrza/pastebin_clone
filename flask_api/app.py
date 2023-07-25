@@ -1,5 +1,6 @@
 import os
 import uuid
+import urllib.parse
 from datetime import datetime
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
@@ -17,7 +18,7 @@ db = SQLAlchemy()
 app = Flask(__name__)
 
 # App configurations
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastes.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 
