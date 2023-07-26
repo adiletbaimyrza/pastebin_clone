@@ -2,41 +2,21 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const GetPaste = () => {
-    const [pasteId, setPasteId] = useState("");
     const [pasteContent, setPasteContent] = useState("");
 
-    const handleIdChange = (event) => {
-        setPasteId(event.target.value);
-    };
-
-    const handleGetClick = () => {
-        // Make the GET request to retrieve the paste content
-        axios
-            .get(`/get/${pasteId}`)
-            .then((response) => {
-                if (response.status === 200) {
-                    // Paste found, set the content in state
-                    setPasteContent(response.data.content);
-                } else {
-                    // Handle error cases, e.g., display an error message
-                    console.error("Failed to get paste:", response.statusText);
-                }
-            })
-            .catch((error) => {
-                console.error("Error sending the request:", error);
-            });
-    };
+    
 
     useEffect(() => {
-        // Extract the UUID from the address
+        // Extract the HASH from the address
         const pathParts = window.location.pathname.split("/");
-        const uuid = pathParts[pathParts.length - 1];
+        const hash = pathParts[pathParts.length - 1];
 
         // Make the GET request to retrieve the paste content
         axios
-            .get(`/get/${uuid}`)
+            .get(`/get/${hash}`)
             .then((response) => {
                 if (response.status === 200) {
+                    console.log('request sent')
                     // Paste found, set the content in state
                     setPasteContent(response.data.content);
                 } else {
@@ -57,7 +37,7 @@ const GetPaste = () => {
                 </div>
             ) : (
                 <div>
-                    <p>Paste expired...</p>
+                    <p>Paste loading...</p>
                 </div>
             )}
         </div>
