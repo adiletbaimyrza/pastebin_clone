@@ -36,7 +36,7 @@ const PostPaste = () => {
                     console.log('Paste created successfully!');
                     // Extract and set the pasteId from the response data
                     response.json().then((data) => {
-                        setPasteId(data.item.id); // Access the "id" from the "item" object
+                        setPasteId(data.hash); // Access the "id" from the "item" object
                     });
                 } else {
                     // Handle error cases, e.g., display an error message
