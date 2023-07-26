@@ -10,7 +10,7 @@ const App = () => {
         <Routes>
           <Route index element={<PostPaste />} />
           <Route path="/home" element={< PostPaste />} />
-          <Route path="/get/:uuid" element={< GetPaste />} />
+          <Route path="/get/:hash" element={< GetPaste />} />
         </Routes>
       </BrowserRouter>
     </div>
