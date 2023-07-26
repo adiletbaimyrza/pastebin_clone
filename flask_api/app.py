@@ -1,13 +1,13 @@
 import os
 import uuid
-import urllib.parse
+# import base64
 from datetime import datetime
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request
 from flask_serialize import FlaskSerialize
-from cutils import add_utc_minutes, is_expired
-from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
+from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt
+# from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,7 +18,8 @@ db = SQLAlchemy()
 app = Flask(__name__)
 
 # App configurations
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 
@@ -33,8 +34,7 @@ fs_mixin = FlaskSerialize(db)
 
 class Paste(db.Model, fs_mixin):
     id = db.Column(db.String(36), primary_key=True)
-    # Store the Azure Blob URL instead of the content
-    blob_url = db.Column(db.String(200), nullable=False)
+    blob_url = db.Column(db.String(200), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
 
@@ -42,27 +42,35 @@ class Paste(db.Model, fs_mixin):
         return f'<Paste {self.id}>'
 
 
+class Hash(db.Model, fs_mixin):
+    url_hash = db.Column(db.String(8), primary_key=True)
+    paste_id = db.Column(db.String(36), unique=True)
+
+    def __repr__(self):
+        return f'Hash {self.url_hash}'
+
+
 # Create a database before the app runs
 with app.app_context():
     db.create_all()
 
 # Retrieve the connection string from the environment variable
-connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+# connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
 # Container name in which pastes will be stored in the storage account
-container_name = "pastes"
+# container_name = "pastes"
 
 # Create a blob service client to interact with the storage account
-blob_service_client = BlobServiceClient.from_connection_string(
-    conn_str=connect_str)
-try:
+# blob_service_client = BlobServiceClient.from_connection_string(
+    # conn_str=connect_str)
+# try:
     # Get container client to interact with the container in which pastes will be stored
-    container_client = blob_service_client.get_container_client(
-        container=container_name)
+    # container_client = blob_service_client.get_container_client(
+    # container=container_name)
     # Get properties of the container to force an exception to be thrown if the container does not exist
-    container_client.get_container_properties()
-except Exception as e:
+    # container_client.get_container_properties()
+# except Exception as e:
     # Create a container in the storage account if it does not exist
-    container_client = blob_service_client.create_container(container_name)
+    # container_client = blob_service_client.create_container(container_name)
 
 
 @app.post('/post')
@@ -78,23 +86,46 @@ def post():
     db.session.add(new_paste)
     db.session.commit()
 
-    # Upload content to Azure Blob Storage
-    blob_name = f"{new_paste.id}.txt"
-    blob_client = blob_service_client.get_blob_client(
-        container=container_name, blob=blob_name)
-    blob_client.upload_blob(request.json['content'], content_settings=ContentSettings(
-        content_type='text/plain'))
+    safe_hash = None
+    while safe_hash == None:
+        not_safe_hash = generate_short_url_hash(new_paste.id)
 
-    # Set the blob URL in the Paste model
-    new_paste.blob_url = blob_client.url
+        if not Hash.query.get(str(not_safe_hash)):
+            safe_hash = not_safe_hash
+
+    new_hash = Hash(
+        url_hash=safe_hash,
+        paste_id=new_paste.id
+    )
+    db.session.add(new_hash)
+
+    blob_url = create_paste(f'{new_paste.id}.txt', request.json['content'])
+
+    new_paste.blob_url = blob_url
     db.session.commit()
 
+    # Upload content to Azure Blob Storage
+    # blob_name = f"{new_paste.id}.txt"
+    # blob_client = blob_service_client.get_blob_client(
+    # container=container_name, blob=blob_name)
+    # blob_client.upload_blob(request.json['content'], content_settings=ContentSettings(
+    # content_type='text/plain'))
+
+    # Set the blob URL in the Paste model
+    # new_paste.blob_url = blob_client.url
+    # db.session.commit()
+
     # Return JSON of the created paste
-    return Paste.fs_get_delete_put_post(new_paste.id), 201
+    return jsonify({'hash': new_hash.url_hash}), 201
 
 
-@app.get('/get/<uuid:id>')
-def get_paste(id):
+@app.get('/get/<string:hash>')
+def get_paste(hash):
+    # Query the Hash model by hash using get()
+    id = ''
+    hash_obj = Hash.query.get(hash)
+    if hash_obj:
+        id = hash_obj.paste_id
     # Query the Paste model by ID using get()
     paste = Paste.query.get(str(id))
 
@@ -106,9 +137,13 @@ def get_paste(id):
             return 'Paste is expired', 410
         else:
             # Fetch the content from Azure Blob Storage using the blob URL
-            blob_client = BlobClient.from_blob_url(paste.blob_url)
-            content = blob_client.download_blob().readall().decode("utf-8")
-            return jsonify({"id": paste.id, "content": content}), 200
+            # blob_client = BlobClient.from_blob_url(paste.blob_url)
+            # content = blob_client.download_blob().readall().decode("utf-8")
+            # return jsonify({"id": paste.id, "content": content}), 200
+            content = read_txt(paste.blob_url)
+            return jsonify({
+                "content": content
+            }), 200
     else:
         # Return 404 Not Found status code if paste not found
         return 'Paste not found', 404
