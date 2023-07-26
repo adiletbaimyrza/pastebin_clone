@@ -27,3 +27,12 @@ yarn-error.log*
 __pycache__
 .env
 pastes.db
+
+#vs code configuration
+.vscode
+
+#database
+instance/
+
+#blob_storage
+pastes/
