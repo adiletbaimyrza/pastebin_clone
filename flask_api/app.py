@@ -1,15 +1,17 @@
 import os
-import uuid
 import redis
+import uuid
+import json
 from datetime import datetime
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request
 from flask_serialize import FlaskSerialize
-from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt
+from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt, set_to_cache, get_from_cache
+from base64 import encode
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
-redisClient = redis.Redis(host='localhost', port=6379, decode_responses=True)
+redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -121,42 +123,47 @@ def post():
     return jsonify({'hash': new_hash.url_hash}), 201
 
 
-@app.get('/get/<string:hash>')
-def get_paste(hash):
-    # Query the Hash model by hash using get()
-    id = ''
-    if redisClient.get(hash):
-        print('cached')
-        return jsonify(dict(content=redisClient.get(hash)))
-    else:
-        hash_obj = Hash.query.get(hash)
-        if hash_obj:
-            id = hash_obj.paste_id
+@app.get('/get/<string:url_hash>')
+def get_paste(url_hash):
+    paste_id = get_from_cache(redis_client, url_hash)
 
-        # Query the Paste model by ID using get()
-        paste = Paste.query.get(str(id))
+    if not paste_id:
+        hash_instance = Hash.query.get(url_hash)
 
-        # Check if the paste exists in the database
-        if paste:
-            # If exists, check for expiration
-            if is_expired(paste.expire_at):
-                # Return 410 Gone status code if the Paste is expired
-                return 'Paste is expired', 410
-            else:
-                # Fetch the content from Azure Blob Storage using the blob URL
-                # blob_client = BlobClient.from_blob_url(paste.blob_url)
-                # content = blob_client.download_blob().readall().decode("utf-8")
-                # return jsonify({"id": paste.id, "content": content}), 200
-                content = read_txt(paste.blob_url)
-
-                redisClient.setex(hash, 5, content)
-                print('not cached')
-                return jsonify({
-                    "content": content
-                }), 200
-        else:
-            # Return 404 Not Found status code if paste not found
+        if not hash_instance:
             return 'Paste not found', 404
+
+        paste_id = hash_instance.paste_id
+        set_to_cache(redis_client, url_hash, paste_id)
+
+    expire_at = get_from_cache(redis_client, paste_id)
+
+    if expire_at:
+        if is_expired(datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f')):
+            return 'Paste is expired', 410
+
+    paste = Paste.query.get(paste_id)
+
+    if is_expired(paste.expire_at):
+        return 'Paste is expired', 410
+    else:
+        set_to_cache(redis_client, paste_id, str(paste.expire_at))
+
+        blob_content = get_from_cache(redis_client, paste.blob_url)
+
+        if not blob_content:
+            blob_content = read_txt(paste.blob_url)
+            set_to_cache(redis_client, paste.blob_url, blob_content)
+
+        return jsonify({"content": blob_content}), 200
+        # Query the Paste model by ID using get()
+        # Check if the paste exists in the database
+        # If exists, check for expiration
+        # Return 410 Gone status code if the Paste is expired
+        # Fetch the content from Azure Blob Storage using the blob URL
+        # blob_client = BlobClient.from_blob_url(paste.blob_url)
+        # content = blob_client.download_blob().readall().decode("utf-8")
+        # return jsonify({"id": paste.id, "content": content}), 200
 
 
 if __name__ == '__main__':
