@@ -49,13 +49,13 @@ const PostPaste = () => {
     };
 
     return (
-        <div class="main">
+        <div className="main">
             {/* Display the HASH if it exists */}
-            {pasteId && <p>HASH: {pasteId}</p>}
-            <div class="paste-nav">
-                <label class="timer-label">
-                    Timer <small class="small">(minutes)</small>:
-                    <input class="timer-input"
+            {pasteId && <a href={`http://localhost:3000/get/${pasteId}`} target='_blank'>localhost:3000/get/{pasteId}</a>}
+            <div className="paste-nav">
+                <label className="timer-label">
+                    Timer <small className="small">(minutes)</small>:
+                    <input className="timer-input"
                         type="number"
                         min="1"
                         max="60"
@@ -65,15 +65,15 @@ const PostPaste = () => {
                 </label>
 
                 <button
-                    class="paste"
+                    className="paste"
                     onClick={handlePostClick}>
-                    <svg class="plus" width="1.8rem" height="1.8rem" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 12H20M12 4V20" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg className="plus" width="1.8rem" height="1.8rem" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 12H20M12 4V20" stroke="#ffffff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <div class="paste-button-text">New Paste</div> 
+                    <div className="paste-button-text">New Paste</div> 
                 </button>
             </div>
-            <textarea class="textarea"
+            <textarea className="textarea"
                 rows="10"
                 cols="50"
                 value={content}

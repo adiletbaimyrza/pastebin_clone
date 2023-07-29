@@ -28,9 +28,9 @@ const GetPaste = () => {
     }, []); // Empty dependency array ensures the effect runs only once on mount
 
     return (
-        <div class="main">
+        <div className="main">
             {pasteContent ? (
-                <div>
+                <div class="content">
                     <pre>{pasteContent}</pre>
                 </div>
             ) : (
