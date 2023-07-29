@@ -4,8 +4,6 @@ import axios from "axios";
 const GetPaste = () => {
     const [pasteContent, setPasteContent] = useState("");
 
-    
-
     useEffect(() => {
         // Extract the HASH from the address
         const pathParts = window.location.pathname.split("/");
@@ -30,7 +28,7 @@ const GetPaste = () => {
     }, []); // Empty dependency array ensures the effect runs only once on mount
 
     return (
-        <div>
+        <div class="main">
             {pasteContent ? (
                 <div>
                     <pre>{pasteContent}</pre>
