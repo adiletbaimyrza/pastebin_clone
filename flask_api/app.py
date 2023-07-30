@@ -123,7 +123,7 @@ def post():
     return jsonify({'hash': new_hash.url_hash}), 201
 
 
-@app.get('/get/<string:url_hash>')
+@app.get('/<string:url_hash>')
 def get_paste(url_hash):
     paste_id = get_from_cache(redis_client, url_hash)
 
