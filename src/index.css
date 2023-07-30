@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 /* ----- CSS Reset ----- */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,7 +6,7 @@
 
 * {
   margin: 0;
-  font-family: 'Fira Code', monospace;
+  font-family: 'Roboto', sans-serif;
 }
 
 body {
@@ -134,8 +134,28 @@ color: white;
 #logo-text {
   font-size: 1.6rem;
   letter-spacing: 2px;
+  font-weight: 700;
 }
 
 .content {
   color: white;
+}
+
+.post-nav {
+  display: flex;
+justify-content: end;
+}
+
+.copy-button {
+  background: #2b2b2b;
+border: none;
+box-shadow: black 1px;
+padding: 0.5rem 0.5rem 0.2rem 0.5rem;
+box-shadow: 1px 1px 1px 1px #1e1e1e;
+transition: 0.1s background ease-in-out;
+}
+
+.copy-button:hover {
+  cursor: pointer;
+  background-color: #3e3e3e;
 }
