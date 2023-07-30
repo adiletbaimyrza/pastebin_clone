@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { CopyToClipboard } from "react-copy-to-clipboard"
 
 const GetPaste = () => {
     const [pasteContent, setPasteContent] = useState("");
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         // Extract the HASH from the address
@@ -29,9 +31,19 @@ const GetPaste = () => {
 
     return (
         <div className="main">
+            <CopyToClipboard text={ pasteContent }>
+                <button
+                    className="copy-button"
+                    onCopy={() => setCopied(true)}>
+                    <svg className="plus" width="1.8rem" height="1.8rem" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 12H20M12 4V20" stroke="#ffffff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </button>
+            </CopyToClipboard>
             {pasteContent ? (
+                
                 <div class="content">
-                    <pre>{pasteContent}</pre>
+                    <pre>{ pasteContent }</pre>
                 </div>
             ) : (
                 <div>
