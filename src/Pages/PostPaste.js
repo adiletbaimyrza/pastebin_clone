@@ -51,7 +51,7 @@ const PostPaste = () => {
     return (
         <div className="main">
             {/* Display the HASH if it exists */}
-            {pasteId && <a href={`http://localhost:3000/get/${pasteId}`} target='_blank'>localhost:3000/get/{pasteId}</a>}
+            {pasteId && <a href={`http://localhost:3000/${pasteId}`} target='_blank'>localhost:3000/{pasteId}</a>}
             <div className="paste-nav">
                 <label className="timer-label">
                     Timer <small className="small">(minutes)</small>:
