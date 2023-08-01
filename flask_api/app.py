@@ -1,6 +1,7 @@
 import os
 import redis
 import uuid
+import pickle
 import json
 from datetime import datetime
 from dotenv import load_dotenv
@@ -132,6 +133,14 @@ def post():
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
+    cacheData = get_from_cache(redis_client, url_hash)
+    if cacheData:
+        if not is_expired(cacheData.expire_at):
+            print("CacheData from Cache")
+            return pickle.loads(cacheData)
+        else:
+            return 'Paste is expired', 410
+
     paste_id = get_from_cache(redis_client, url_hash)
 
     if not paste_id:
@@ -164,15 +173,18 @@ def get_paste(url_hash):
 
         # i want you to store the jsonified data in pasteData, and store it in redis and before it look outs elsewhere i want you
         # to first look out in cache and check if data is in cache
-        redis_client.setex()
-        return jsonify({
+        jsonData = {
             "hash": paste.hash,
             "created_at": paste.created_at,
             "expire_at": paste.expire_at,
             "user_id": 'anonymous' if paste.user_id == None else paste.user_id,
             "username": 'anonymous' if paste.username == None else paste.username,
             "views_count": paste.views_count,
-            "content": blob_content}), 200
+            "content": blob_content}
+        serialized_jsonData = pickle.dumps(jsonData)
+        redis_client.setex(paste.hash, serialized_jsonData, 3600)
+        print("cacheData set to Cache")
+        return jsonify(jsonData), 200
         # Query the Paste model by ID using get()
         # Check if the paste exists in the database
         # If exists, check for expiration
