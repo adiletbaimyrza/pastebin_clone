@@ -1,15 +1,14 @@
 import os
-import redis
-import uuid
-import pickle
 import json
+import uuid
+import redis
+from base64 import encode
 from datetime import datetime
 from dotenv import load_dotenv
-from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request
-from flask_serialize import FlaskSerialize
+
+from models import db, Paste, Hash
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt
-from base64 import encode
 
 
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
@@ -19,8 +18,7 @@ redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 # Load environment variables from .env file
 load_dotenv()
 
-# Create an extension
-db = SQLAlchemy()
+
 # Create an app
 app = Flask(__name__)
 
@@ -32,34 +30,6 @@ app.config['DEBUG'] = False
 
 # Initialize the app with the extension
 db.init_app(app)
-
-# Create a flask-serialize mixin instance
-fs_mixin = FlaskSerialize(db)
-
-# Paste model
-
-
-class Paste(db.Model):
-    id = db.Column(db.String(36), primary_key=True)
-    hash = db.Column(db.String(8), unique=True)
-    blob_url = db.Column(db.String(200), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False)
-    expire_at = db.Column(db.DateTime, nullable=False)
-    user_id = db.Column(db.String(36), nullable=True, default=None)
-    username = db.Column(db.String(20), nullable=True, default=None)
-    views_count = db.Column(db.Integer, nullable=False, default=0)
-
-    def __repr__(self):
-        return f'<Paste {self.id}>'
-
-
-class Hash(db.Model, fs_mixin):
-    url_hash = db.Column(db.String(8), primary_key=True)
-    paste_id = db.Column(db.String(36), unique=True)
-
-    def __repr__(self):
-        return f'Hash {self.url_hash}'
-
 
 # Create a database before the app runs
 with app.app_context():
