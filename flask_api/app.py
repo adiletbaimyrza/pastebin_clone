@@ -38,6 +38,7 @@ fs_mixin = FlaskSerialize(db)
 
 class Paste(db.Model):
     id = db.Column(db.String(36), primary_key=True)
+    hash = db.Column(db.String(8), unique=True)
     blob_url = db.Column(db.String(200), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
@@ -111,6 +112,7 @@ def post():
     blob_url = create_paste(f'{new_paste.id}.txt', request.json['content'])
 
     new_paste.blob_url = blob_url
+    new_paste.hash = safe_hash
     db.session.commit()
 
     # Upload content to Azure Blob Storage
@@ -161,7 +163,7 @@ def get_paste(url_hash):
             set_to_cache(redis_client, paste.blob_url, blob_content)
 
         return jsonify({
-            "id": paste.id,
+            "hash": paste.hash,
             "created_at": paste.created_at,
             "expire_at": paste.expire_at,
             "user_id": 'anonymous' if paste.user_id == None else paste.user_id,
