@@ -55,15 +55,3 @@ def read_txt(file_path):
         # Read the entire content of the file using read()
         file_content = file.read()
         return file_content
-
-
-def get_from_cache(redis_client, key):
-    data = redis_client.get(key)
-    if data:
-        print(f"From Cache: {key}")
-    return data
-
-
-def set_to_cache(redis_client, key, value, expiration=20):
-    redis_client.setex(key, expiration, value)
-    print(f"Set to Cache: {key}")

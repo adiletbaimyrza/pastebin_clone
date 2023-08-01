@@ -8,8 +8,10 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request
 from flask_serialize import FlaskSerialize
-from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt, set_to_cache, get_from_cache
+from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt
 from base64 import encode
+
+
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
@@ -98,7 +100,7 @@ def post():
     db.session.commit()
 
     safe_hash = None
-    while safe_hash == None:
+    while safe_hash is None:
         not_safe_hash = generate_short_url_hash(new_paste.id)
 
         if not Hash.query.get(str(not_safe_hash)):
@@ -133,26 +135,25 @@ def post():
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
-    cacheData = get_from_cache(redis_client, url_hash)
-    if cacheData:
-        if not is_expired(cacheData.expire_at):
-            print("CacheData from Cache")
-            return pickle.loads(cacheData)
+    cache_json_data = redis_client.get(url_hash)
+    if cache_json_data:
+        cache_dict_data = json.loads(cache_json_data)
+
+        if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S.%f')):
+            print("cache_data from Cache")
+            return jsonify(cache_dict_data), 200
         else:
             return 'Paste is expired', 410
 
-    paste_id = get_from_cache(redis_client, url_hash)
+    hash_instance = Hash.query.get(url_hash)
 
-    if not paste_id:
-        hash_instance = Hash.query.get(url_hash)
+    if not hash_instance:
+        return 'Paste not found', 404
 
-        if not hash_instance:
-            return 'Paste not found', 404
+    paste_id = hash_instance.paste_id
+    redis_client.setex(url_hash, 20, paste_id)
 
-        paste_id = hash_instance.paste_id
-        set_to_cache(redis_client, url_hash, paste_id)
-
-    expire_at = get_from_cache(redis_client, paste_id)
+    expire_at = redis_client.get(paste_id)
 
     if expire_at:
         if is_expired(datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f')):
@@ -163,28 +164,27 @@ def get_paste(url_hash):
     if is_expired(paste.expire_at):
         return 'Paste is expired', 410
     else:
-        set_to_cache(redis_client, paste_id, str(paste.expire_at))
+        redis_client.setex(paste_id, 20, str(paste.expire_at))
 
-        blob_content = get_from_cache(redis_client, paste.blob_url)
+        blob_content = redis_client.get(paste.blob_url)
 
         if not blob_content:
             blob_content = read_txt(paste.blob_url)
-            set_to_cache(redis_client, paste.blob_url, blob_content)
+            redis_client.setex(paste.blob_url, 20,  blob_content)
 
-        # i want you to store the jsonified data in pasteData, and store it in redis and before it look outs elsewhere i want you
-        # to first look out in cache and check if data is in cache
-        jsonData = {
+        response_dict_data = {
             "hash": paste.hash,
-            "created_at": paste.created_at,
-            "expire_at": paste.expire_at,
-            "user_id": 'anonymous' if paste.user_id == None else paste.user_id,
-            "username": 'anonymous' if paste.username == None else paste.username,
+            "created_at": str(paste.created_at),
+            "expire_at": str(paste.expire_at),
+            "user_id": 'anonymous' if paste.user_id is None else paste.user_id,
+            "username": 'anonymous' if paste.username is None else paste.username,
             "views_count": paste.views_count,
             "content": blob_content}
-        serialized_jsonData = pickle.dumps(jsonData)
-        redis_client.setex(paste.hash, serialized_jsonData, 3600)
-        print("cacheData set to Cache")
-        return jsonify(jsonData), 200
+
+        response_json_data = json.dumps(response_dict_data)
+        redis_client.setex(paste.hash, 3600, response_json_data)
+        print("response_json_data set to Cache")
+        return jsonify(json.loads(response_json_data)), 200
         # Query the Paste model by ID using get()
         # Check if the paste exists in the database
         # If exists, check for expiration
