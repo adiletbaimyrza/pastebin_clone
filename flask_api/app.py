@@ -162,6 +162,9 @@ def get_paste(url_hash):
             blob_content = read_txt(paste.blob_url)
             set_to_cache(redis_client, paste.blob_url, blob_content)
 
+        # i want you to store the jsonified data in pasteData, and store it in redis and before it look outs elsewhere i want you
+        # to first look out in cache and check if data is in cache
+        redis_client.setex()
         return jsonify({
             "hash": paste.hash,
             "created_at": paste.created_at,
