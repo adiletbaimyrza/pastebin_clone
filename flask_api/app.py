@@ -36,11 +36,14 @@ fs_mixin = FlaskSerialize(db)
 # Paste model
 
 
-class Paste(db.Model, fs_mixin):
+class Paste(db.Model):
     id = db.Column(db.String(36), primary_key=True)
     blob_url = db.Column(db.String(200), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
+    user_id = db.Column(db.String(36), nullable=True, default=None)
+    username = db.Column(db.String(20), nullable=True, default=None)
+    views_count = db.Column(db.Integer, nullable=False, default=0)
 
     def __repr__(self):
         return f'<Paste {self.id}>'
@@ -84,7 +87,9 @@ def post():
         id=str(uuid.uuid4()),
         blob_url="",  # Initialize the blob_url, it will be set after blob upload
         created_at=datetime.utcnow(),
-        expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_add=request.json['minutes_to_live']))
+        expire_at=add_utc_minutes(
+            datetime.utcnow(), minutes_to_add=request.json['minutes_to_live'])
+    )
 
     # Add to the database
     db.session.add(new_paste)
@@ -155,7 +160,14 @@ def get_paste(url_hash):
             blob_content = read_txt(paste.blob_url)
             set_to_cache(redis_client, paste.blob_url, blob_content)
 
-        return jsonify({"content": blob_content}), 200
+        return jsonify({
+            "id": paste.id,
+            "created_at": paste.created_at,
+            "expire_at": paste.expire_at,
+            "user_id": 'anonymous' if paste.user_id == None else paste.user_id,
+            "username": 'anonymous' if paste.username == None else paste.username,
+            "views_count": paste.views_count,
+            "content": blob_content}), 200
         # Query the Paste model by ID using get()
         # Check if the paste exists in the database
         # If exists, check for expiration
