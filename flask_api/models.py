@@ -7,17 +7,40 @@ db = SQLAlchemy()
 fs_mixin = FlaskSerialize(db)
 
 
+class User(db.Model, fs_mixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(87), nullable=False)
+
+    comments = db.Relationship('Comment', backref='user')
+    pastes = db.Relationship('Paste', backref='paste')
+
+
 class Paste(db.Model):
-    hash = db.Column(db.String(8), primary_key=True)
-    blob_url = db.Column(db.String(200), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    blob_url = db.Column(db.String(256), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
-    user_id = db.Column(db.String(36), nullable=True, default=None)
-    username = db.Column(db.String(20), nullable=True, default=None)
     views_count = db.Column(db.Integer, nullable=False, default=0)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    hash_id = db.Column(db.Integer, db.ForeignKey('hash.id'), nullable=False)
+
+    comments = db.Relationship('Comment', backref='paste')
 
 
 class Hash(db.Model, fs_mixin):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    url_hash = db.Column(db.String(8), primary_key=True)
-    is_assigned = db.Column(db.Boolean)
+    id = db.Column(db.Integer, primary_key=True)
+    url_hash = db.Column(db.String(8), unique=True)
+    is_assigned = db.Column(db.Boolean, default=False)
+
+    paste = db.Relationship('Paste', backref='hash', uselist=False)
+
+
+class Comment(db.Model, fs_mixin):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    paste_id = db.Column(db.Integer, db.ForeignKey('paste.id'), nullable=False)
