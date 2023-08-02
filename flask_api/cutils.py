@@ -33,7 +33,7 @@ def generate_short_url_hash(id: str, length=8):
     return short_hash
 
 
-def create_paste(file_name: str, text: str):
+def create_blob_paste(file_name: str, text: str) -> str:
     # Get the current directory where the main.py file is located
     current_directory = os.path.dirname(os.path.abspath(__file__))
 

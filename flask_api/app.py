@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
 from models import db, Paste, Hash
-from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_paste, read_txt
+from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
 
 
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
@@ -55,42 +55,43 @@ with app.app_context():
 
 
 def generate_10k_hashes():
-    for i in range(10000):
-        id = uuid.uuid4()
-        hash = generate_short_url_hash(str(id))
+    for _ in range(10000):
+        random_hash = generate_short_url_hash(str(uuid.uuid4()))
+        unique_hash = None
+        while unique_hash is None:
+            if not Hash.query.filter_by(url_hash=random_hash):
+                unique_hash = random_hash
+                new_hash_entry = Hash(url_hash=unique_hash)
+                db.session.add(new_hash_entry)
+    db.session.commit()
+    
+def get_hash() -> str:
+    if Hash.query.count() < 1000:
+        generate_10k_hashes()
+    
+    hash_record = Hash.query.first()
+    db.session.delete(hash_record)
+    db.session.commit()
+    
+    hash = hash_record.url_hash
+    
+    return hash
+
 
 
 @app.post('/post')
 def post():
-    # Create a Paste model instance from JSON
     new_paste = Paste(
-        blob_url="",  # Initialize the blob_url, it will be set after blob upload
+        hash=get_hash(),
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(
-            datetime.utcnow(), minutes_to_add=request.json['minutes_to_live'])
+            datetime.utcnow(),
+            minutes_to_add=request.json['minutes_to_live']),
+        user_id=None
     )
-
-    # Add to the database
-    db.session.add(new_paste)
-    db.session.commit()
-
-    safe_hash = None
-    while safe_hash is None:
-        not_safe_hash = generate_short_url_hash(new_paste.id)
-
-        if not Hash.query.get(str(not_safe_hash)):
-            safe_hash = not_safe_hash
-
-    new_hash = Hash(
-        url_hash=safe_hash,
-        paste_id=new_paste.id
-    )
-    db.session.add(new_hash)
-
-    blob_url = create_paste(f'{new_paste.id}.txt', request.json['content'])
-
+    blob_url = create_blob_paste(f'{new_paste.id}.txt', request.json['content'])
     new_paste.blob_url = blob_url
-    new_paste.hash = safe_hash
+    
     db.session.commit()
 
     # Upload content to Azure Blob Storage
@@ -100,12 +101,7 @@ def post():
     # blob_client.upload_blob(request.json['content'], content_settings=ContentSettings(
     # content_type='text/plain'))
 
-    # Set the blob URL in the Paste model
-    # new_paste.blob_url = blob_client.url
-    # db.session.commit()
-
-    # Return JSON of the created paste
-    return jsonify({'hash': new_hash.url_hash}), 201
+    return jsonify({'hash': new_paste.hash}), 201
 
 
 @app.get('/<string:url_hash>')
@@ -120,44 +116,31 @@ def get_paste(url_hash):
         else:
             return 'Paste is expired', 410
 
-    hash_instance = Hash.query.get(url_hash)
+    paste_instance = Paste.query.filter_by(hash=url_hash).first()
 
-    if not hash_instance:
+    if not paste_instance:
         return 'Paste not found', 404
 
-    paste_id = hash_instance.paste_id
-    redis_client.setex(url_hash, 20, paste_id)
-
-    expire_at = redis_client.get(paste_id)
-
-    if expire_at:
-        if is_expired(datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f')):
-            return 'Paste is expired', 410
-
-    paste = Paste.query.get(paste_id)
-
-    if is_expired(paste.expire_at):
+    if is_expired(paste_instance.expire_at):
         return 'Paste is expired', 410
     else:
-        redis_client.setex(paste_id, 20, str(paste.expire_at))
-
-        blob_content = redis_client.get(paste.blob_url)
+        blob_content = redis_client.get(paste_instance.blob_url)
 
         if not blob_content:
-            blob_content = read_txt(paste.blob_url)
-            redis_client.setex(paste.blob_url, 20,  blob_content)
+            blob_content = read_txt(paste_instance.blob_url)
+            redis_client.setex(paste_instance.blob_url, 20, blob_content)
 
         response_dict_data = {
-            "hash": paste.hash,
-            "created_at": str(paste.created_at),
-            "expire_at": str(paste.expire_at),
-            "user_id": 'anonymous' if paste.user_id is None else paste.user_id,
-            "username": 'anonymous' if paste.username is None else paste.username,
-            "views_count": paste.views_count,
+            "hash": paste_instance.hash,
+            "created_at": str(paste_instance.created_at),
+            "expire_at": str(paste_instance.expire_at),
+            "user_id": 'anonymous' if paste_instance.user_id is None else paste_instance.user_id,
+            "username": 'anonymous' if paste_instance.username is None else paste_instance.username,
+            "views_count": paste_instance.views_count,
             "content": blob_content}
 
         response_json_data = json.dumps(response_dict_data)
-        redis_client.setex(paste.hash, 3600, response_json_data)
+        redis_client.setex(paste_instance.hash, 3600, response_json_data)
         print("response_json_data set to Cache")
         return jsonify(json.loads(response_json_data)), 200
         # Query the Paste model by ID using get()

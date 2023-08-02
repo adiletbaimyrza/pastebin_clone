@@ -18,13 +18,13 @@ class User(db.Model, fs_mixin):
 
 class Paste(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    hash = db.Column(db.String(8), unique=True, nullable=False)
     blob_url = db.Column(db.String(256), unique=True, nullable=False, default="")
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
     views_count = db.Column(db.Integer, nullable=False, default=0)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    hash_id = db.Column(db.Integer, db.ForeignKey('hash.id'), nullable=False)
 
     comments = db.Relationship('Comment', backref='paste')
 
@@ -32,9 +32,6 @@ class Paste(db.Model):
 class Hash(db.Model, fs_mixin):
     id = db.Column(db.Integer, primary_key=True)
     url_hash = db.Column(db.String(8), unique=True)
-    is_assigned = db.Column(db.Boolean, default=False)
-
-    paste = db.Relationship('Paste', backref='hash', uselist=False)
 
 
 class Comment(db.Model, fs_mixin):
