@@ -18,7 +18,7 @@ class User(db.Model, fs_mixin):
 
 class Paste(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    blob_url = db.Column(db.String(256), unique=True, nullable=False)
+    blob_url = db.Column(db.String(256), unique=True, nullable=False, default="")
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
     views_count = db.Column(db.Integer, nullable=False, default=0)
