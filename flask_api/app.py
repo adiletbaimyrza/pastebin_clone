@@ -54,6 +54,12 @@ with app.app_context():
     # container_client = blob_service_client.create_container(container_name)
 
 
+def generate_10k_hashes():
+    for i in range(10000):
+        id = uuid.uuid4()
+        hash = generate_short_url_hash(str(id))
+
+
 @app.post('/post')
 def post():
     # Create a Paste model instance from JSON
