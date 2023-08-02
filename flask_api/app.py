@@ -64,7 +64,6 @@ def generate_10k_hashes():
 def post():
     # Create a Paste model instance from JSON
     new_paste = Paste(
-        id=str(uuid.uuid4()),
         blob_url="",  # Initialize the blob_url, it will be set after blob upload
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(
