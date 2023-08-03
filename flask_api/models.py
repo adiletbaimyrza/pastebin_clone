@@ -1,11 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_serialize import FlaskSerialize
 
-
 db = SQLAlchemy()
-
 fs_mixin = FlaskSerialize(db)
-
 
 class User(db.Model, fs_mixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -13,11 +10,11 @@ class User(db.Model, fs_mixin):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(87), nullable=False)
 
-    comments = db.Relationship('Comment', backref='user')
-    pastes = db.Relationship('Paste', backref='paste')
+    comments = db.relationship('Comment', backref='user')
+    pastes = db.relationship('Paste', backref='user')
 
 
-class Paste(db.Model):
+class Paste(db.Model, fs_mixin):
     id = db.Column(db.Integer, primary_key=True)
     hash = db.Column(db.String(8), unique=True, nullable=False)
     blob_url = db.Column(db.String(256), unique=True, nullable=False, default="")
@@ -25,9 +22,9 @@ class Paste(db.Model):
     expire_at = db.Column(db.DateTime, nullable=False)
     views_count = db.Column(db.Integer, nullable=False, default=0)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
-    comments = db.Relationship('Comment', backref='paste')
+    comments = db.relationship('Comment', backref='paste')
 
 
 class Hash(db.Model, fs_mixin):
