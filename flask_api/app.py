@@ -74,7 +74,7 @@ def generate_10_hashes():
 
 def get_hash() -> str:
     print("Checking for existing hashes...")
-    if Hash.query.count() < 1:
+    if Hash.query.count() < 2:
         print("No hashes found. Generating new ones...")
         generate_10_hashes()
 
@@ -99,10 +99,23 @@ def post():
             minutes_to_add=request.json['minutes_to_live']),
         user_id=None
     )
-    blob_url = create_blob_paste(f'{new_paste.id}.txt', request.json['content'])
+    
+    print("New Paste instance attributes:")
+    print(f"ID: {new_paste.id}")
+    print(f"Hash: {new_paste.hash}")
+    print(f"Blob URL: {new_paste.blob_url}")
+    print(f"Created At: {new_paste.created_at}")
+    print(f"Expire At: {new_paste.expire_at}")
+    print(f"Views Count: {new_paste.views_count}")
+    print(f"User ID: {new_paste.user_id}")
+    print(f"Comments: {new_paste.comments}")
+    blob_url = create_blob_paste(f'{new_paste.hash}.txt', request.json['content'])
     new_paste.blob_url = blob_url
+    print(f"Blob URL after assignment: {new_paste.blob_url}")
     print(f"Created new paste with ID: {new_paste.id}")
 
+    db.session.add(new_paste)
+    print("New paste added to the session")
     db.session.commit()
     print("Committed new paste to the database.")
 
@@ -150,8 +163,7 @@ def get_paste(url_hash):
             "hash": paste_instance.hash,
             "created_at": str(paste_instance.created_at),
             "expire_at": str(paste_instance.expire_at),
-            "user_id": 'anonymous' if paste_instance.user_id is None else paste_instance.user_id,
-            "username": 'anonymous' if paste_instance.username is None else paste_instance.username,
+            "username": 'anonymous',
             "views_count": paste_instance.views_count,
             "content": blob_content}
 
