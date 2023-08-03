@@ -6,21 +6,23 @@ const LoginForm = (props) => {
     const [loggedIn, setLoggedIn] = useState("");
 
     const handleUsernameChange = (event) => {
-        setUsername(event.target.value); 
+        setUsername(event.target.value);
     };
 
     const handlePasswordChange = (event) => {
         setPassword(event.target.value);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = (event) => {
+        event.preventDefault(); // Prevent the default form submission behavior
+
         // Prepare the JSON data to be sent
         const userData = {
             username: username,
             password: password
         };
 
-        // Send the JSON data to the '/post' endpoint
+        // Send the JSON data to the '/login' endpoint
         fetch('/login', {
             method: 'POST',
             headers: {
@@ -30,9 +32,9 @@ const LoginForm = (props) => {
         })
             .then((response) => {
                 if (response.ok) {
-                    // Paste successfully created
+                    // User logged in successfully
                     console.log('User logged in successfully!');
-                    setLoggedIn("User logged in successfully!")
+                    setLoggedIn("User logged in successfully!");
                 } else {
                     // Handle error cases, e.g., display an error message
                     console.error('Failed to log in User:', response.statusText);
@@ -46,7 +48,7 @@ const LoginForm = (props) => {
     return (
         <div className="auth-form-container">
             <h2 className="auth-form-header">Log in</h2>
-            <form className="auth-form">
+            <form className="auth-form" onSubmit={handleSubmit}>
                 <label className="label username-label">
                     Username
                     <input
@@ -63,7 +65,8 @@ const LoginForm = (props) => {
 
                 <label className="label password-label">
                     Password
-                    <input className="input password-input"
+                    <input
+                        className="input password-input"
                         value={password}
                         onChange={handlePasswordChange}
                         type="password"
@@ -73,12 +76,9 @@ const LoginForm = (props) => {
                         required
                     />
                 </label>
-                
-                <button
-                    className="auth-button"
-                    type="submit"
-                    onSubmit={handleSubmit}>
-                        Log in
+
+                <button className="auth-button" type="submit">
+                    Log in
                 </button>
             </form>
             <button className="auth-toggle-form" onClick={() => props.onFormSwitch("register")}>
