@@ -52,33 +52,45 @@ with app.app_context():
     # container_client = blob_service_client.create_container(container_name)
 
 
-def generate_10k_hashes():
-    for _ in range(10000):
+def generate_10_hashes():
+    print("Generating 10 hashes...")
+    for _ in range(10):
         random_hash = generate_short_url_hash(str(uuid.uuid4()))
+        print(f"Generated random hash: {random_hash}")
         unique_hash = None
         while unique_hash is None:
-            if not Hash.query.filter_by(url_hash=random_hash):
+            if not Hash.query.filter_by(url_hash=random_hash).first():
                 unique_hash = random_hash
                 new_hash_entry = Hash(url_hash=unique_hash)
                 db.session.add(new_hash_entry)
+                print(f"Added new hash entry: {unique_hash}")
+            else:
+                random_hash = generate_short_url_hash(str(uuid.uuid4()))
+                print(f"Collision detected. Regenerating hash: {random_hash}")
+
     db.session.commit()
-    
+    print("Committed changes to the database.")
+
+
 def get_hash() -> str:
-    if Hash.query.count() < 1000:
-        generate_10k_hashes()
-    
+    print("Checking for existing hashes...")
+    if Hash.query.count() < 1:
+        print("No hashes found. Generating new ones...")
+        generate_10_hashes()
+
     hash_record = Hash.query.first()
     db.session.delete(hash_record)
     db.session.commit()
-    
+
     hash = hash_record.url_hash
-    
+    print(f"Selected hash for the paste: {hash}")
+
     return hash
 
 
-
-@app.post('/post')
+@app.post('/')
 def post():
+    print("Received a POST request.")
     new_paste = Paste(
         hash=get_hash(),
         created_at=datetime.utcnow(),
@@ -89,8 +101,10 @@ def post():
     )
     blob_url = create_blob_paste(f'{new_paste.id}.txt', request.json['content'])
     new_paste.blob_url = blob_url
-    
+    print(f"Created new paste with ID: {new_paste.id}")
+
     db.session.commit()
+    print("Committed new paste to the database.")
 
     # Upload content to Azure Blob Storage
     # blob_name = f"{new_paste.id}.txt"
@@ -104,22 +118,26 @@ def post():
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
+    print(f"Received a GET request for hash: {url_hash}")
     cache_json_data = redis_client.get(url_hash)
     if cache_json_data:
         cache_dict_data = json.loads(cache_json_data)
 
         if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S.%f')):
-            print("cache_data from Cache")
+            print("Cache hit. Retrieved data from Cache.")
             return jsonify(cache_dict_data), 200
         else:
+            print("Cache expired. The paste is no longer available.")
             return 'Paste is expired', 410
 
     paste_instance = Paste.query.filter_by(hash=url_hash).first()
 
     if not paste_instance:
+        print("Requested paste not found.")
         return 'Paste not found', 404
 
     if is_expired(paste_instance.expire_at):
+        print("Requested paste has expired.")
         return 'Paste is expired', 410
     else:
         blob_content = redis_client.get(paste_instance.blob_url)
@@ -139,31 +157,28 @@ def get_paste(url_hash):
 
         response_json_data = json.dumps(response_dict_data)
         redis_client.setex(paste_instance.hash, 3600, response_json_data)
-        print("response_json_data set to Cache")
+        print("Data set to Cache.")
         return jsonify(json.loads(response_json_data)), 200
-        # Query the Paste model by ID using get()
-        # Check if the paste exists in the database
-        # If exists, check for expiration
-        # Return 410 Gone status code if the Paste is expired
-        # Fetch the content from Azure Blob Storage using the blob URL
-        # blob_client = BlobClient.from_blob_url(paste.blob_url)
-        # content = blob_client.download_blob().readall().decode("utf-8")
-        # return jsonify({"id": paste.id, "content": content}), 200
 
 
 @app.post("/register")
 def register():
+    print("Received a POST request for registration.")
     print(request.json["username"])
     print(request.json["email"])
     print(request.json["password"])
-    
+
     return jsonify({'response': 'data received'}), 201
+
 
 @app.post("/login")
 def login():
+    print("Received a POST request for login.")
     print(request.json["username"])
     print(request.json["password"])
-    
+
     return jsonify({'response': 'data received'}), 200
+
+
 if __name__ == '__main__':
     app.run()
