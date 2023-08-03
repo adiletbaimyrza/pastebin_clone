@@ -10,14 +10,12 @@ from flask import Flask, jsonify, request
 from models import db, Paste, Hash
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
 
-
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 # Load environment variables from .env file
 load_dotenv()
-
 
 # Create an app
 app = Flask(__name__)
