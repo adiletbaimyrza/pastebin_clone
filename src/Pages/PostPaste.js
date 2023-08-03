@@ -24,7 +24,7 @@ const PostPaste = () => {
         };
 
         // Send the JSON data to the '/post' endpoint
-        fetch('/post', {
+        fetch('/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
