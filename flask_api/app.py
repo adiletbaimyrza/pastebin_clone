@@ -159,6 +159,14 @@ def get_paste(url_hash):
         redis_client.setex(paste_instance.hash, 3600, response_json_data)
         print("Data set to Cache.")
         return jsonify(json.loads(response_json_data)), 200
+        # Query the Paste model by ID using get()
+        # Check if the paste exists in the database
+        # If exists, check for expiration
+        # Return 410 Gone status code if the Paste is expired
+        # Fetch the content from Azure Blob Storage using the blob URL
+        # blob_client = BlobClient.from_blob_url(paste.blob_url)
+        # content = blob_client.download_blob().readall().decode("utf-8")
+        # return jsonify({"id": paste.id, "content": content}), 200
 
 
 @app.post("/register")
