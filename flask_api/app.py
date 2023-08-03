@@ -153,5 +153,19 @@ def get_paste(url_hash):
         # return jsonify({"id": paste.id, "content": content}), 200
 
 
+@app.post("/register")
+def register():
+    print(request.json["username"])
+    print(request.json["email"])
+    print(request.json["password"])
+    
+    return jsonify({'response': 'data received'}), 201
+
+@app.post("/login")
+def login():
+    print(request.json["username"])
+    print(request.json["password"])
+    
+    return jsonify({'response': 'data received'}), 200
 if __name__ == '__main__':
     app.run()
