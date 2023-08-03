@@ -24,7 +24,7 @@ def to_bytes_like_object(string_object: str):
     return string_object.encode()
 
 
-def generate_short_url_hash(id: str, length=8):
+def generate_short_url_hash(id: str, length=8) -> str:
     # bytes-like object
     blo_object = to_bytes_like_object(id)
     hash = base64.urlsafe_b64encode(blo_object)
