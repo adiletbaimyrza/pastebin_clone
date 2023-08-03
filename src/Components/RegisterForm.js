@@ -5,10 +5,10 @@ const RegisterForm = (props) => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [email, setEmail] = useState("");
-    const [registered, setRegistered] = useState("")
+    const [registered, setRegistered] = useState("");
 
     const handleUsernameChange = (event) => {
-        setUsername(event.target.value); 
+        setUsername(event.target.value);
     };
 
     const handlePasswordChange = (event) => {
@@ -21,9 +21,11 @@ const RegisterForm = (props) => {
 
     const handleEmailChange = (event) => {
         setEmail(event.target.value);
-    }
+    };
 
-    const handleSubmit = () => {
+    const handleSubmit = (event) => {
+        event.preventDefault(); // Prevent the default form submission behavior
+
         // Prepare the JSON data to be sent
         const userData = {
             username: username,
@@ -31,7 +33,7 @@ const RegisterForm = (props) => {
             password: password
         };
 
-        // Send the JSON data to the '/post' endpoint
+        // Send the JSON data to the '/register' endpoint
         fetch('/register', {
             method: 'POST',
             headers: {
@@ -41,9 +43,9 @@ const RegisterForm = (props) => {
         })
             .then((response) => {
                 if (response.ok) {
-                    // Paste successfully created
-                    console.log('User created successfully!');
-                    setRegistered("User registered successfully!")
+                    // User registered successfully
+                    console.log('User registered successfully!');
+                    setRegistered("User registered successfully!");
                 } else {
                     // Handle error cases, e.g., display an error message
                     console.error('Failed to create User:', response.statusText);
@@ -54,11 +56,10 @@ const RegisterForm = (props) => {
             });
     };
 
-
     return (
         <div className="auth-form-container">
             <h2 className="auth-form-header">Register</h2>
-            <form className="auth-form">
+            <form className="auth-form" onSubmit={handleSubmit}>
                 <label className="label username-label">
                     Username
                     <input
@@ -89,7 +90,8 @@ const RegisterForm = (props) => {
 
                 <label className="label password-label">
                     Password
-                    <input className="input password-input"
+                    <input
+                        className="input password-input"
                         value={password}
                         onChange={handlePasswordChange}
                         type="password"
@@ -102,7 +104,8 @@ const RegisterForm = (props) => {
 
                 <label className="label confirm-password-label">
                     Confirm password
-                    <input className="input password-input"
+                    <input
+                        className="input password-input"
                         value={confirmPassword}
                         onChange={handleConfirmPasswordChange}
                         type="password"
@@ -112,12 +115,9 @@ const RegisterForm = (props) => {
                         required
                     />
                 </label>
-                
-                <button
-                    className="auth-button"
-                    type="submit"
-                    onSubmit={handleSubmit}>
-                        Register
+
+                <button className="auth-button" type="submit">
+                    Register
                 </button>
             </form>
             <button className="auth-toggle-form" onClick={() => props.onFormSwitch("login")}>
