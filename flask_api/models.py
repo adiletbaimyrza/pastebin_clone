@@ -5,7 +5,7 @@ db = SQLAlchemy()
 fs_mixin = FlaskSerialize(db)
 
 class User(db.Model, fs_mixin):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(87), nullable=False)
