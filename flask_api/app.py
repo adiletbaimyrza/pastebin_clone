@@ -7,7 +7,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
-from models import db, Paste, Hash
+from models import db, Paste, Hash, User, Comment
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
 
 # from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
@@ -184,9 +184,24 @@ def get_paste(url_hash):
 @app.post("/register")
 def register():
     print("Received a POST request for registration.")
-    print(request.json["username"])
-    print(request.json["email"])
-    print(request.json["password"])
+    username = request.json["username"]
+    email = request.json["email"]
+    password = request.json["password"]
+    
+    if User.query.filter_by(email=email).first():
+        return jsonify({'response': 'email already registered'}), 401
+    if User.query.filter_by(username=username).first():
+        return jsonify({'response': 'username is taken'}), 401
+    
+    new_user = User(
+        email = email,
+        username = username, 
+        password = password
+    )
+    
+    db.session.add(new_user)
+    db.session.commit()
+    print("user created!")
 
     return jsonify({'response': 'data received'}), 201
 
@@ -194,10 +209,17 @@ def register():
 @app.post("/login")
 def login():
     print("Received a POST request for login.")
-    print(request.json["username"])
-    print(request.json["password"])
-
-    return jsonify({'response': 'data received'}), 200
+    username = request.json["username"]
+    password = request.json["password"]
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'response': 'no such username'}), 401
+    else:
+        if user.password == password:
+            return jsonify({'response': 'authorized'}), 200
+        else:
+            return jsonify({'response': 'password incorrect'}), 401
 
 
 if __name__ == '__main__':
