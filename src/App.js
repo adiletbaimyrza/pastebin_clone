@@ -3,8 +3,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import GetPaste from "./Pages/GetPaste"
 import PostPaste from "./Pages/PostPaste";
 import NavBar from "./Components/NavBar";
+import LoginForm from "./Components/LoginForm";
+import RegisterForm from "./Components/RegisterForm";
 
-const App = () => {
+const App = () => { 
+  const [currentForm, setCurrentForm] = useState("login")
+
+  const toggeForm = (formName) => {
+    setCurrentForm(formName)
+  };
+
   return (
     <div className="app-container">
       <NavBar />
@@ -14,11 +22,16 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route index element={<PostPaste />} />
-            <Route path="/:hash" element={< GetPaste />} />
+            <Route path="/:hash" element={<GetPaste />} />
           </Routes>
         </BrowserRouter>
 
-        <div className="right-col"></div>
+        <div className="right-col">
+          {
+            currentForm === "login" ? <LoginForm onFormSwitch={toggeForm}/> : <RegisterForm onFormSwitch={toggeForm}/>
+          }
+        </div>
+
       </div>
     </div>
 
