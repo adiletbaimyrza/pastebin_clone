@@ -6,6 +6,7 @@ from base64 import encode
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
 from models import db, Paste, Hash, User, Comment
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
@@ -25,6 +26,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+jwt = JWTManager(app)
 
 # Initialize the app with the extension
 db.init_app(app)
@@ -212,14 +216,27 @@ def login():
     username = request.json["username"]
     password = request.json["password"]
     
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return jsonify({'response': 'no such username'}), 401
-    else:
-        if user.password == password:
-            return jsonify({'response': 'authorized'}), 200
-        else:
-            return jsonify({'response': 'password incorrect'}), 401
+    if username != "test" or password != "test":
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token)
+    
+    # user = User.query.filter_by(username=username).first()
+    # if not user:
+        # return jsonify({'response': 'no such username'}), 401
+    # else:
+        # if user.password == password:
+            # return jsonify({'response': 'authorized'}), 200
+        # else:
+            # return jsonify({'response': 'password incorrect'}), 401
+            
+@app.get("/protected")
+@jwt_required()
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
 
 
 if __name__ == '__main__':
