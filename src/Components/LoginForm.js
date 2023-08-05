@@ -35,9 +35,16 @@ const LoginForm = (props) => {
                     // User logged in successfully
                     console.log('User logged in successfully!');
                     setLoggedIn("User logged in successfully!");
+                    return response.json(); // Parse the response data as JSON
                 } else {
                     // Handle error cases, e.g., display an error message
                     console.error('Failed to log in User:', response.statusText);
+                }
+            })
+            .then(data => {
+                if (data) {
+                    console.log('this came from backend', data);
+                    sessionStorage.setItem('token', data.access_token);
                 }
             })
             .catch((error) => {
@@ -46,45 +53,54 @@ const LoginForm = (props) => {
     };
 
     return (
-        <div className="auth-form-container">
-            <h2 className="auth-form-header">Log in</h2>
-            <form className="auth-form" onSubmit={handleSubmit}>
-                <label className="label username-label">
-                    Username
-                    <input
-                        className="input username-input"
-                        value={username}
-                        onChange={handleUsernameChange}
-                        type="text"
-                        id="username"
-                        name="username"
-                        placeholder="username"
-                        required
-                    />
-                </label>
+        <React.Fragment>
+            {sessionStorage.getItem('token') ? (
+                <p>You are logged in successfully</p>
+            ) : (
+                <div className="auth-form-container">
+                    <h2 className="auth-form-header">Log in</h2>
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <label className="label username-label">
+                            Username
+                            <input
+                                className="input username-input"
+                                value={username}
+                                onChange={handleUsernameChange}
+                                type="text"
+                                id="username"
+                                name="username"
+                                placeholder="username"
+                                required
+                            />
+                        </label>
 
-                <label className="label password-label">
-                    Password
-                    <input
-                        className="input password-input"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="********"
-                        required
-                    />
-                </label>
+                        <label className="label password-label">
+                            Password
+                            <input
+                                className="input password-input"
+                                value={password}
+                                onChange={handlePasswordChange}
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="********"
+                                required
+                            />
+                        </label>
 
-                <button className="auth-button" type="submit">
-                    Log in
-                </button>
-            </form>
-            <button className="auth-toggle-form" onClick={() => props.onFormSwitch("register")}>
-                Don't have an account? Register
-            </button>
-        </div>
+                        <button className="auth-button" type="submit">
+                            Log in
+                        </button>
+                    </form>
+                    <button
+                        className="auth-toggle-form"
+                        onClick={() => props.onFormSwitch("register")}
+                    >
+                        Don't have an account? Register
+                    </button>
+                </div>
+            )}
+        </React.Fragment>
     );
 };
 
