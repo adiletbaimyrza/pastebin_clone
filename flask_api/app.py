@@ -210,7 +210,7 @@ def register():
     return jsonify({'response': 'data received'}), 201
 
 
-@app.post("/login")
+@app.post("/token")
 def login():
     print("Received a POST request for login.")
     username = request.json["username"]
