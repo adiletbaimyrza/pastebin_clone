@@ -20,7 +20,8 @@ class Paste(db.Model, fs_mixin):
     blob_url = db.Column(db.String(256), unique=True, nullable=False, default="")
     created_at = db.Column(db.DateTime, nullable=False)
     expire_at = db.Column(db.DateTime, nullable=False)
-
+    username = db.Column(db.String(50), nullable=True)
+    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     comments = db.relationship('Comment', backref='paste')
