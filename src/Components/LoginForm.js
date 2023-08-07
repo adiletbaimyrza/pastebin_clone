@@ -59,12 +59,9 @@ const LoginForm = (props) => {
     return (
         <React.Fragment>
             {token && token !== "" && token !== undefined ? (
-                <>
-                    <p>You are logged in successfully with token: {token}</p>
                     <button onClick={handleLogout} className="logout-button button">
                         Log out
                     </button>
-                </>
             ) : (
                 <div className="auth-form-container">
                     <h2 className="auth-form-header">Log in</h2>
