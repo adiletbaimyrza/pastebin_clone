@@ -6,7 +6,7 @@ from base64 import encode
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, verify_jwt_in_request
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
 from models import db, Paste, Hash, User, Comment
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
