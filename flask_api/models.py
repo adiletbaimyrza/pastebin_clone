@@ -23,6 +23,7 @@ class Paste(db.Model, fs_mixin):
     views_count = db.Column(db.Integer, nullable=False, default=0)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    username = db.Column(db.String(50), nullable=True)
 
     comments = db.relationship('Comment', backref='paste')
 
