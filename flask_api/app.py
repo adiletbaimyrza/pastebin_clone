@@ -6,7 +6,7 @@ from base64 import encode
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, verify_jwt_in_request
 
 from models import db, Paste, Hash, User, Comment
 from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
@@ -93,30 +93,25 @@ def get_hash() -> str:
 
 
 @app.post('/create_paste')
-@jwt_required()
+@jwt_required(optional=True)
 def create_paste():
     username = get_jwt_identity()
-    user = User.query.filter_by(username=username).first()
-    user_id = None
-    
-    if user is None:
-        username = None
-        user_id = None
-    else:
-        username = user.username
-        user_id = user.id
-    
+    if username:
+        user = User.query.filter_by(username=username).first()
+
+    jsonData = request.get_json()
+    minutes_to_live = jsonData.get('minutes_to_live')
+    content = jsonData.get('content')
+
     new_paste = Paste(
         hash=get_hash(),
         created_at=datetime.utcnow(),
-        expire_at=add_utc_minutes(
-            datetime.utcnow(),
-            minutes_to_add=request.json['minutes_to_live']),
-        user_id=user_id,
-        username = username
+        expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_live),
+        username=user.username if username else "anonymous",
+        user_id=user.id if username else None
     )
     
-    blob_url = create_blob_paste(f'{new_paste.hash}.txt', request.json['content'])
+    blob_url = create_blob_paste(f'{new_paste.hash}.txt', content)
     new_paste.blob_url = blob_url
 
     db.session.add(new_paste)
@@ -160,7 +155,6 @@ def get_paste(url_hash):
         if not blob_content:
             blob_content = read_txt(paste_instance.blob_url)
             redis_client.setex(paste_instance.blob_url, 20, blob_content)
-        
         response_dict_data = {
             "hash": paste_instance.hash,
             "created_at": str(paste_instance.created_at),
@@ -201,7 +195,6 @@ def register():
     
     db.session.add(new_user)
     db.session.commit()
-    print("user created!")
 
     return jsonify({'response': 'data received'}), 201
 
@@ -212,24 +205,11 @@ def generate_token():
     password = request.json["password"]
     
     user = User.query.filter_by(username=username).first()
-    if not user:
-        return jsonify({'response': 'no such username'}), 401
+    if user and user.password == password:
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token)
     else:
-        if user.password == password:
-            access_token = create_access_token(identity=username)
-            return jsonify(access_token=access_token)
-        else:
-            return jsonify({'response': 'password incorrect'}), 401
-
-
-    
-            
-@app.get("/protected")
-@jwt_required()
-def protected():
-    # Access the identity of the current user with get_jwt_identity
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+        return jsonify({'response': 'incorrect username or password'}), 401
 
 
 if __name__ == '__main__':
