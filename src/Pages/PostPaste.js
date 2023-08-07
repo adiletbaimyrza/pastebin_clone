@@ -25,45 +25,25 @@ const PostPaste = () => {
             minutes_to_live: minutes,
         };
 
-        if(jwt) {
-            fetch('/create_paste', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`,
-                },
-                body: JSON.stringify(pasteData),
+        // Send the JSON data to the '/post' endpoint
+        fetch('/create_paste', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwt}`,
+            },
+            body: JSON.stringify(pasteData),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    response.json().then((data) => {setPasteId(data.hash)});
+                } else {
+                    console.error('Failed to create paste:', response.statusText);
+                }
             })
-                .then((response) => {
-                    if (response.ok) {
-                        response.json().then((data) => {setPasteId(data.hash)});
-                    } else {
-                        console.error('Failed to create paste:', response.statusText);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error sending the request:', error);
-                });
-        } else {
-            fetch('/create_paste', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(pasteData),
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        response.json().then((data) => {setPasteId(data.hash)});
-                    } else {
-                        console.error('Failed to create paste:', response.statusText);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error sending the request:', error);
-                });
-        }
-        
+            .catch((error) => {
+                console.error('Error sending the request:', error);
+            });
     };
 
     return (
