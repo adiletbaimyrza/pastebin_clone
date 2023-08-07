@@ -29,7 +29,6 @@ const GetPaste = () => {
               setPasteExpireAt(response.data.expire_at);
               setPasteUserId(response.data.user_id);
               setPasteUsername(response.data.username);
-              setPasteViewsCount(response.data.views_count);
             } else {
               // Handle error cases, e.g., display an error message
               console.error("Failed to get paste:", response.statusText);
