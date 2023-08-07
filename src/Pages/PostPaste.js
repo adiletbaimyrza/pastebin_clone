@@ -16,6 +16,8 @@ const PostPaste = () => {
         setMinutes(newMinutes);
     };
 
+    const token = localStorage.getItem('token');
+
     const handlePostClick = () => {
         // Prepare the JSON data to be sent
         const pasteData = {
@@ -24,10 +26,11 @@ const PostPaste = () => {
         };
 
         // Send the JSON data to the '/post' endpoint
-        fetch('/', {
+        fetch('/create_paste', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(pasteData),
         })
