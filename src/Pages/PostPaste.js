@@ -16,7 +16,7 @@ const PostPaste = () => {
         setMinutes(newMinutes);
     };
 
-    const token = localStorage.getItem('token');
+    const jwt = localStorage.getItem('token');
 
     const handlePostClick = () => {
         // Prepare the JSON data to be sent
@@ -25,31 +25,45 @@ const PostPaste = () => {
             minutes_to_live: minutes,
         };
 
-        // Send the JSON data to the '/post' endpoint
-        fetch('/create_paste', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(pasteData),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    // Paste successfully created
-                    console.log('Paste created successfully!');
-                    // Extract and set the pasteId from the response data
-                    response.json().then((data) => {
-                        setPasteId(data.hash); // Access the "id" from the "item" object
-                    });
-                } else {
-                    // Handle error cases, e.g., display an error message
-                    console.error('Failed to create paste:', response.statusText);
-                }
+        if(jwt) {
+            fetch('/create_paste', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+                body: JSON.stringify(pasteData),
             })
-            .catch((error) => {
-                console.error('Error sending the request:', error);
-            });
+                .then((response) => {
+                    if (response.ok) {
+                        response.json().then((data) => {setPasteId(data.hash)});
+                    } else {
+                        console.error('Failed to create paste:', response.statusText);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sending the request:', error);
+                });
+        } else {
+            fetch('/create_paste', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pasteData),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        response.json().then((data) => {setPasteId(data.hash)});
+                    } else {
+                        console.error('Failed to create paste:', response.statusText);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sending the request:', error);
+                });
+        }
+        
     };
 
     return (
