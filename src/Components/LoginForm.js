@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+const token = localStorage.getItem('token')
+console.log('token:' + token)
 
 const LoginForm = (props) => {
     const [username, setUsername] = useState("");
@@ -44,7 +46,7 @@ const LoginForm = (props) => {
             .then(data => {
                 if (data) {
                     console.log('this came from backend', data);
-                    sessionStorage.setItem('token', data.access_token);
+                    localStorage.setItem('token', data.access_token);
                 }
             })
             .catch((error) => {
@@ -54,8 +56,8 @@ const LoginForm = (props) => {
 
     return (
         <React.Fragment>
-            {sessionStorage.getItem('token') ? (
-                <p>You are logged in successfully</p>
+            {(token && token !== "" && token !== undefined) ? (
+                <p>You are logged in successfully with token: {token}</p>
             ) : (
                 <div className="auth-form-container">
                     <h2 className="auth-form-header">Log in</h2>
