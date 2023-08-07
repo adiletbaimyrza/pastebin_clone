@@ -92,38 +92,36 @@ def get_hash() -> str:
     return hash
 
 
-@app.post('/')
-def post():
-    print("Received a POST request.")
+@app.post('/create_paste')
+@jwt_required()
+def create_paste():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    user_id = None
+    
+    if user is None:
+        username = None
+        user_id = None
+    else:
+        username = user.username
+        user_id = user.id
+    
     new_paste = Paste(
         hash=get_hash(),
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(
             datetime.utcnow(),
             minutes_to_add=request.json['minutes_to_live']),
-        user_id=None
+        user_id=user_id,
+        username = username
     )
     
-    print("New Paste instance attributes:")
-    print(f"ID: {new_paste.id}")
-    print(f"Hash: {new_paste.hash}")
-    print(f"Blob URL: {new_paste.blob_url}")
-    print(f"Created At: {new_paste.created_at}")
-    print(f"Expire At: {new_paste.expire_at}")
-    print(f"Views Count: {new_paste.views_count}")
-    print(f"User ID: {new_paste.user_id}")
-    print(f"Comments: {new_paste.comments}")
     blob_url = create_blob_paste(f'{new_paste.hash}.txt', request.json['content'])
     new_paste.blob_url = blob_url
-    print(f"Blob URL after assignment: {new_paste.blob_url}")
-    print(f"Created new paste with ID: {new_paste.id}")
 
     db.session.add(new_paste)
-    print("New paste added to the session")
     db.session.commit()
-    print("Committed new paste to the database.")
 
-    # Upload content to Azure Blob Storage
     # blob_name = f"{new_paste.id}.txt"
     # blob_client = blob_service_client.get_blob_client(
     # container=container_name, blob=blob_name)
@@ -162,13 +160,12 @@ def get_paste(url_hash):
         if not blob_content:
             blob_content = read_txt(paste_instance.blob_url)
             redis_client.setex(paste_instance.blob_url, 20, blob_content)
-
+        
         response_dict_data = {
             "hash": paste_instance.hash,
             "created_at": str(paste_instance.created_at),
             "expire_at": str(paste_instance.expire_at),
-            "username": 'anonymous',
-            "views_count": paste_instance.views_count,
+            "username": paste_instance.username,
             "content": blob_content}
 
         response_json_data = json.dumps(response_dict_data)
@@ -187,7 +184,6 @@ def get_paste(url_hash):
 
 @app.post("/register")
 def register():
-    print("Received a POST request for registration.")
     username = request.json["username"]
     email = request.json["email"]
     password = request.json["password"]
@@ -211,25 +207,22 @@ def register():
 
 
 @app.post("/token")
-def login():
-    print("Received a POST request for login.")
+def generate_token():
     username = request.json["username"]
     password = request.json["password"]
     
-    if username != "test" or password != "test":
-        return jsonify({"msg": "Bad username or password"}), 401
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'response': 'no such username'}), 401
+    else:
+        if user.password == password:
+            access_token = create_access_token(identity=username)
+            return jsonify(access_token=access_token)
+        else:
+            return jsonify({'response': 'password incorrect'}), 401
 
-    access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token)
+
     
-    # user = User.query.filter_by(username=username).first()
-    # if not user:
-        # return jsonify({'response': 'no such username'}), 401
-    # else:
-        # if user.password == password:
-            # return jsonify({'response': 'authorized'}), 200
-        # else:
-            # return jsonify({'response': 'password incorrect'}), 401
             
 @app.get("/protected")
 @jwt_required()
