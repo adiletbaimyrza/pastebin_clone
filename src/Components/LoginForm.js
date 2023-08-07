@@ -1,63 +1,70 @@
 import React, { useState } from "react";
-const token = localStorage.getItem('token')
-console.log('token:' + token)
 
 const LoginForm = (props) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [loggedIn, setLoggedIn] = useState("");
 
     const handleUsernameChange = (event) => {
+        console.log("Handling username change");
         setUsername(event.target.value);
     };
 
     const handlePasswordChange = (event) => {
+        console.log("Handling password change");
         setPassword(event.target.value);
     };
 
     const handleSubmit = (event) => {
-        event.preventDefault(); // Prevent the default form submission behavior
+        console.log("Handling form submission");
+        event.preventDefault();
 
-        // Prepare the JSON data to be sent
         const userData = {
             username: username,
             password: password
         };
 
-        // Send the JSON data to the '/login' endpoint
-        fetch('/login', {
+        console.log("Sending fetch request with user data:", userData);
+        fetch('/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(userData),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    // User logged in successfully
-                    console.log('User logged in successfully!');
-                    setLoggedIn("User logged in successfully!");
-                    return response.json(); // Parse the response data as JSON
-                } else {
-                    // Handle error cases, e.g., display an error message
-                    console.error('Failed to log in User:', response.statusText);
-                }
-            })
-            .then(data => {
-                if (data) {
-                    console.log('this came from backend', data);
-                    localStorage.setItem('token', data.access_token);
-                }
-            })
-            .catch((error) => {
-                console.error('Error sending the request:', error);
-            });
+        }).then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.error('Failed to log in User:', response.statusText);
+            }
+        }).then(data => {
+            if (data) {
+                console.log("Received data:", data);
+                localStorage.setItem('token', data.access_token);
+                window.location.href = "/";
+            }
+        }).catch((error) => {
+            console.error('Error sending the request:', error);
+        });
     };
+
+    const handleLogout = () => {
+        console.log("Handling logout");
+        localStorage.removeItem("token");
+        window.location.href = "/";
+    };
+
+    const token = localStorage.getItem('token');
+    console.log("Token:", token);
 
     return (
         <React.Fragment>
-            {(token && token !== "" && token !== undefined) ? (
-                <p>You are logged in successfully with token: {token}</p>
+            {token && token !== "" && token !== undefined ? (
+                <>
+                    <p>You are logged in successfully with token: {token}</p>
+                    <button onClick={handleLogout} className="logout-button button">
+                        Log out
+                    </button>
+                </>
             ) : (
                 <div className="auth-form-container">
                     <h2 className="auth-form-header">Log in</h2>
