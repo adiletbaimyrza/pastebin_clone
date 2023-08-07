@@ -228,3 +228,20 @@ text-decoration: underline;
 .auth-toggle-form:hover {
   cursor: pointer;
 }
+
+.logout-button {
+  background: rgb(145, 44, 32);
+  border: none;
+  padding: 0.5rem 0.7rem 0.5rem 0.5rem;
+  color: white;
+}
+
+.logout-button:hover {
+  background-color: rgb(118, 34, 24);
+}
+
+.right-col {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
