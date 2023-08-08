@@ -96,6 +96,7 @@ def get_hash() -> str:
 @jwt_required(optional=True)
 def create_paste():
     username = get_jwt_identity()
+    user = None
     if username:
         user = User.query.filter_by(username=username).first()
 
@@ -107,8 +108,8 @@ def create_paste():
         hash=get_hash(),
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_live),
-        username=user.username if username else "anonymous",
-        user_id=user.id if username else None
+        username=user.username if user else "anonymous",
+        user_id=user.id if user else None
     )
     
     blob_url = create_blob_paste(f'{new_paste.hash}.txt', content)
@@ -160,7 +161,8 @@ def get_paste(url_hash):
             "created_at": str(paste_instance.created_at),
             "expire_at": str(paste_instance.expire_at),
             "username": paste_instance.username,
-            "content": blob_content}
+            "content": blob_content,
+            "comments": dict(paste_instance.comments)}
 
         response_json_data = json.dumps(response_dict_data)
         redis_client.setex(paste_instance.hash, 3600, response_json_data)
