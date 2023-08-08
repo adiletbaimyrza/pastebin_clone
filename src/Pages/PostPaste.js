@@ -26,24 +26,46 @@ const PostPaste = () => {
         };
 
         // Send the JSON data to the '/post' endpoint
-        fetch('/create_paste', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${jwt}`,
-            },
-            body: JSON.stringify(pasteData),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    response.json().then((data) => {setPasteId(data.hash)});
-                } else {
-                    console.error('Failed to create paste:', response.statusText);
-                }
+        if (jwt) {
+            fetch('/create_paste', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwt}`,
+                },
+                body: JSON.stringify(pasteData),
             })
-            .catch((error) => {
-                console.error('Error sending the request:', error);
-            });
+                .then((response) => {
+                    if (response.ok) {
+                        response.json().then((data) => {setPasteId(data.hash)});
+                    } else {
+                        console.error('Failed to create paste:', response.statusText);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sending the request:', error);
+                });
+        }
+        else {
+            fetch('/create_paste', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pasteData),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        response.json().then((data) => {setPasteId(data.hash)});
+                    } else {
+                        console.error('Failed to create paste:', response.statusText);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error sending the request:', error);
+                });
+        }
+        
     };
 
     return (

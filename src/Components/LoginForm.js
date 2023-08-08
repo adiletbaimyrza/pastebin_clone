@@ -36,7 +36,7 @@ const LoginForm = (props) => {
             } else {
                 console.error('Failed to log in User:', response.statusText);
             }
-        }).then(data => {
+        }).then((data) => {
             if (data) {
                 console.log("Received data:", data);
                 localStorage.setItem('token', data.access_token);
