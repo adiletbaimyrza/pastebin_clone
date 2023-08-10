@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import redis
+import asyncio
 from base64 import encode
 from datetime import datetime
 from dotenv import load_dotenv
@@ -15,13 +16,10 @@ from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_
 
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Create an app
 app = Flask(__name__)
 
-# App configurations
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
@@ -30,10 +28,8 @@ app.config['DEBUG'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
 
-# Initialize the app with the extension
 db.init_app(app)
 
-# Create a database before the app runs
 with app.app_context():
     db.create_all()
 
@@ -56,31 +52,31 @@ with app.app_context():
     # container_client = blob_service_client.create_container(container_name)
 
 
-def generate_10_hashes():
-    print("Generating 10 hashes...")
+async def async_generate_hashes(quantity=1000):
+    print(f'Generating {quantity} hashes. - started')
+    
     for _ in range(10):
         random_hash = generate_short_url_hash(str(uuid.uuid4()))
-        print(f"Generated random hash: {random_hash}")
         unique_hash = None
         while unique_hash is None:
             if not Hash.query.filter_by(url_hash=random_hash).first():
                 unique_hash = random_hash
                 new_hash_entry = Hash(url_hash=unique_hash)
+                
                 db.session.add(new_hash_entry)
-                print(f"Added new hash entry: {unique_hash}")
             else:
                 random_hash = generate_short_url_hash(str(uuid.uuid4()))
-                print(f"Collision detected. Regenerating hash: {random_hash}")
+                
+    print(f'Generating {quantity} hashes. - started')
 
     db.session.commit()
-    print("Committed changes to the database.")
 
 
 def get_hash() -> str:
-    print("Checking for existing hashes...")
+    print("Checking for existing hashes.")
     if Hash.query.count() < 2:
-        print("No hashes found. Generating new ones...")
-        generate_10_hashes()
+        print("No hashes found. Generating new ones.")
+        async_generate_hashes(10)
 
     hash_record = Hash.query.first()
     db.session.delete(hash_record)
