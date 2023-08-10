@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import CopySVG from "../SVGs/CopySVG";
+import TimeSVG from "../SVGs/TimeSVG";
+import TimerSVG from "../SVGs/TimerSVG";
+import UserSVG from "../SVGs/UserSVG";
+
+import { format } from "date-fns"
 
 const GetPaste = () => {
   const [pasteContent, setPasteContent] = useState("");
@@ -9,7 +15,6 @@ const GetPaste = () => {
   const [pasteExpireAt, setPasteExpireAt] = useState("");
   const [pasteUserId, setPasteUserId] = useState("");
   const [pasteUsername, setPasteUsername] = useState("");
-  const [pasteViewsCount, setPasteViewsCount] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -22,11 +27,10 @@ const GetPaste = () => {
           .get(`/${hash}`)
           .then((response) => {
             if (response.status === 200) {
-              console.log("request sent");
-              // Paste found, set the content in state
               setPasteContent(response.data.content);
-              setPasteCreatedAt(response.data.created_at);
-              setPasteExpireAt(response.data.expire_at);
+              // Format the datetime strings using date-fns
+              setPasteCreatedAt(format(new Date(response.data.created_at), "MMMM d, yyyy HH:mm"));
+              setPasteExpireAt(format(new Date(response.data.expire_at), "MMMM d, yyyy HH:mm"));
               setPasteUserId(response.data.user_id);
               setPasteUsername(response.data.username);
             } else {
@@ -42,10 +46,18 @@ const GetPaste = () => {
   return (
     <div className="main">
       <div className="post-nav">
-        <p className="post-nav-item">created at: {pasteCreatedAt}</p>
-        <p className="post-nav-item">will expire at: {pasteExpireAt}</p>
-        <p className="post-nav-item">username: {pasteUsername}</p>
-        <p className="post-nav-item">views: {pasteViewsCount}</p>
+        <div className="post-nav-item">
+          <TimeSVG />
+          {pasteCreatedAt}
+        </div>
+        <div className="post-nav-item">
+          <TimerSVG />
+          {pasteExpireAt}
+        </div>
+        <div className="post-nav-item">
+          <UserSVG />
+          {pasteUsername}
+          </div>
         <CopyToClipboard text={pasteContent}>
           <button className="copy-button" onCopy={() => setCopied(true)}>
             <CopySVG />

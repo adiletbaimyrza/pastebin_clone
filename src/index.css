@@ -141,20 +141,23 @@ color: white;
 
 .post-nav {
   display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
 }
 
 .copy-button {
-  background: #2b2b2b;
-border: none;
-box-shadow: black 1px;
-padding: 0.5rem 0.5rem 0.2rem 0.5rem;
-box-shadow: 1px 1px 1px 1px #1e1e1e;
-transition: 0.1s background ease-in-out;
+  background: #026502;
+  border: none;
+  box-shadow: black 1px;
+  padding: 0.5rem 0.5rem 0rem 0.5rem;
+  box-shadow: 1px 1px 1px 1px #1e1e1e;
+  transition: 0.1s background ease-in-out;
 }
 
 .copy-button:hover {
   cursor: pointer;
-  background-color: #3e3e3e;
+  background-color:  rgb(3, 68, 3);
 }
 
 .post-nav-item {
@@ -162,6 +165,11 @@ transition: 0.1s background ease-in-out;
 margin: 0.1rem;
 padding: 0.2rem;
 font-size: 0.8rem;
+flex-grow: 1;
+display: flex;
+align-items: center;
+box-shadow: black 1px;
+box-shadow: 1px 1px 1px 1px #1e1e1e;
 }
 
 .auth-form-container {
@@ -244,4 +252,22 @@ text-decoration: underline;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+
+.time-icon {
+  height: 1.5rem;
+  margin-left:0.3rem;
+  margin-right:0.2rem;
+}
+
+.timer-icon {
+  height: 1.5rem;
+  margin-left:0.3rem;
+  margin-right:0.2rem;
+}
+
+.user-icon {
+  height: 1.5rem;
+  margin-left:0.3rem;
+  margin-right:0.2rem;
 }
