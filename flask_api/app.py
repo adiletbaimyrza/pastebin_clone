@@ -97,19 +97,31 @@ def get_paste(url_hash):
         print("Requested paste has expired.")
         return 'Paste is expired', 410
 
-    
     blob_content = read_txt(paste_instance.blob_url)
+
+    comments = Comment.query.filter_by(paste_id=paste_instance.id).all()
+    comments_list = []
+    for comment in comments:
+        comments_list.append({
+            "id": comment.id,
+            "created_at": comment.created_at,
+            "comment": comment.content,
+            "user_id": comment.user_id
+            # Add other comment attributes here
+        })
+
     response_dict_data = {
+        "id": paste_instance.id,
         "hash": paste_instance.hash,
         "created_at": str(paste_instance.created_at),
         "expire_at": str(paste_instance.expire_at),
         "username": paste_instance.username,
         "content": blob_content,
-        "comments": dict(Comment.query.filter_by(paste_id=paste_instance.id))}
+        "comments": comments_list  # Include the list of comments
+    }
 
-    response_json_data = json.dumps(response_dict_data)
-    
-    return jsonify(json.loads(response_json_data)), 200
+    return jsonify(response_dict_data), 200
+
 
 @app.post("/register")
 def register():
@@ -151,13 +163,14 @@ def generate_token():
 def create_comment():
     username = get_jwt_identity()
     comment = request.json["comment"]
+    paste_id = request.json["paste_id"]
     
     new_comment = Comment(
         content=comment,
         created_at=datetime.utcnow(),
         
         user_id=User.query.filter_by(username=username).first().id,
-        paste_id=Paste.query.filter_by(username=username).first().id
+        paste_id=paste_id
     )
     
     db.session.add(new_comment)

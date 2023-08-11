@@ -13,6 +13,7 @@ const GetPaste = () => {
   const [pasteCreatedAt, setPasteCreatedAt] = useState("");
   const [pasteExpireAt, setPasteExpireAt] = useState("");
   const [pasteUsername, setPasteUsername] = useState("");
+  const [pasteId, setPasteId] = useState("");
 
   const [comment, setComment] = useState("");
   const [copied, setCopied] = useState("");
@@ -27,8 +28,14 @@ const GetPaste = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     
+    if (!pasteId) {
+      console.error('Failed to create comment: Missing paste id');
+      return;
+    }
+  
     const commentData = {
-      comment: comment
+      comment: comment,
+      paste_id: pasteId
     };
 
     fetch('/create_comment', {
@@ -49,6 +56,8 @@ const GetPaste = () => {
     .catch((error) => {
         console.error('Error sending the request:', error);
     });
+
+    
   }
 
   useEffect(() => {
@@ -60,6 +69,7 @@ const GetPaste = () => {
       .then((response) => {
         if (response.status === 200) {
           const responseData = response.data;
+          setPasteId(responseData.id);
           setPasteContent(responseData.content);
           setPasteCreatedAt(format(new Date(responseData.created_at), "MMMM d, yyyy HH:mm"));
           setPasteExpireAt(format(new Date(responseData.expire_at), "MMMM d, yyyy HH:mm"));
