@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { format } from "date-fns"
+import { format } from "date-fns";
 
 import CopySVG from "../SVGs/CopySVG";
 import TimeSVG from "../SVGs/TimeSVG";
@@ -13,38 +13,43 @@ const GetPaste = () => {
   const [pasteCreatedAt, setPasteCreatedAt] = useState("");
   const [pasteExpireAt, setPasteExpireAt] = useState("");
   const [pasteUsername, setPasteUsername] = useState("");
-  const [comments, setComments] = useState([]);
+
   const [comment, setComment] = useState("");
+  const [copied, setCopied] = useState("");
+  const [comments, setComments] = useState([]);
+
+  const jwt = localStorage.getItem('token');
 
   const handleCommentChange = (event) => {
     setComment(event.target.value);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    
     const commentData = {
-        text : text,
-        author : author
+      comment: comment
     };
 
-    fetch('/add_comment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwt}`,
-        },
-        body: JSON.stringify(commentData),
+    fetch('/create_comment', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(commentData),
     })
     .then((response) => {
         if (response.ok) {
-            console.log("OK. Comment sent to the API");
+            console.log("OK. Comment sent to Backend")
         } else {
-            console.error('Failed to create paste:', response.statusText);
+            console.error('Failed to create comment:', response.statusText);
         }
     })
     .catch((error) => {
         console.error('Error sending the request:', error);
     });
-  };
+  }
 
   useEffect(() => {
     const pathParts = window.location.pathname.split("/");
@@ -54,12 +59,12 @@ const GetPaste = () => {
       .get(`/${hash}`)
       .then((response) => {
         if (response.status === 200) {
-          setPasteContent(response.data.content);
-          setPasteCreatedAt(format(new Date(response.data.created_at), "MMMM d, yyyy HH:mm"));
-          setPasteExpireAt(format(new Date(response.data.expire_at), "MMMM d, yyyy HH:mm"));
-          setPasteUserId(response.data.user_id);
-          setPasteUsername(response.data.username);
-          setComments(response.data.comments);
+          const responseData = response.data;
+          setPasteContent(responseData.content);
+          setPasteCreatedAt(format(new Date(responseData.created_at), "MMMM d, yyyy HH:mm"));
+          setPasteExpireAt(format(new Date(responseData.expire_at), "MMMM d, yyyy HH:mm"));
+          setPasteUsername(responseData.username);
+          setComments(responseData.comments);
         } else {
           console.error("Failed to get paste:", response.statusText);
         }
@@ -67,9 +72,7 @@ const GetPaste = () => {
       .catch((error) => {
         console.error("Error sending the request:", error);
       });
-    }, 
-    
-  []);
+  }, []);
 
   return (
     <div className="main">
@@ -90,8 +93,8 @@ const GetPaste = () => {
         </div>
 
         <CopyToClipboard text={pasteContent}>
-          <button className="copy-button" onCopy={() => setCopied(true)}>
-            <CopySVG />
+          <button className="copy-button">
+            <CopySVG /> Copy
           </button>
         </CopyToClipboard>
       </div>
@@ -101,7 +104,7 @@ const GetPaste = () => {
           <div className="content">
             <pre>{pasteContent}</pre>
           </div>
-          
+
           <div className="comments">
             {comments.length > 0 ? (
               comments.map((comment, index) => (
@@ -114,27 +117,31 @@ const GetPaste = () => {
               <p>No comments available.</p>
             )}
           </div>
-
-          <div className="add-comment">
+          
+          {jwt ? (
+            <div className="add-comment">
             <form onSubmit={handleSubmit}>
               <label className="add-comment-label">
-                  Comment
-                  <input
-                      className="input comment-input"
-                      value={comment}
-                      onChange={handleCommentChange}
-                      type="text"
-                      id="comment"
-                      name="comment"
-                      placeholder="comment"
-                      required
-                  />
+                Comment
+                <input
+                  className="input comment-input"
+                  value={comment}
+                  onChange={handleCommentChange}
+                  type="text"
+                  id="comment"
+                  name="comment"
+                  placeholder="comment"
+                  required
+                />
               </label>
               <button className="add-comment-button button" type="submit">
-                    Add comment
+                Add comment
               </button>
             </form>
           </div>
+          ) : <p>unauthorized to comment</p>
+          }
+          
         </>
       ) : (
         <div>
