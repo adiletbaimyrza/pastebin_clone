@@ -113,20 +113,23 @@ const GetPaste = () => {
 
       {pasteContent ? (
         <>
-          <div className="content">
+        <div className="outer">
+        <div className="content">
             <pre>{pasteContent}</pre>
           </div>
+        </div>
+          
 
           <div className="comments">
             {comments.length > 0 ? (
               comments.map((comment, index) => (
                 <div key={index} className="comment">
                   <p>{comment.content}</p>
-                  <p>By: {comment.username}</p>
+                  <p>{comment.username}</p>
                 </div>
               ))
             ) : (
-              <p>No comments available.</p>
+              <></>
             )}
           </div>
           
@@ -134,7 +137,6 @@ const GetPaste = () => {
             <div className="add-comment">
               <form onSubmit={handleSubmit}>
               <label className="add-comment-label">
-                Comment
                 <input
                   className="input comment-input"
                   value={comment}
@@ -151,7 +153,7 @@ const GetPaste = () => {
               </button>
               </form>
             </div>
-          ) : <p>unauthorized to comment</p>}
+          ) : <></>}
         </>
       ) : (
         <div>

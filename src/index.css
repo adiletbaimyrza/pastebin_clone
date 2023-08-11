@@ -136,7 +136,18 @@ color: white;
 }
 
 .content {
-  color: white;
+  color: rgb(253, 246, 213);
+  background-color: #1f1e1e;
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  padding: 0.5rem;
+}
+
+.outer {
+  overflow: auto;
+  max-height: 400px;
 }
 
 .post-nav {
@@ -270,4 +281,18 @@ text-decoration: underline;
   height: 1.5rem;
   margin-left:0.3rem;
   margin-right:0.2rem;
+}
+
+.add-comment-button {
+  background: #026502;
+  border: none;
+  box-shadow: black 1px;
+  padding: 0.5rem 0.5rem 0rem 0.5rem;
+  box-shadow: 1px 1px 1px 1px #1e1e1e;
+  transition: 0.1s background ease-in-out;
+}
+
+.add-comment-button:hover {
+  cursor: pointer;
+  background-color:  rgb(3, 68, 3);
 }
