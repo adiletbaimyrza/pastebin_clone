@@ -17,7 +17,8 @@ const App = () => {
     <div className="app-container">
       <NavBar />
       <div className="app">
-        <div className="left-col"></div>
+        <div className="left-col">
+        </div>
 
         <BrowserRouter>
           <Routes>
