@@ -84,17 +84,16 @@ def create_paste():
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
-    paste_instance = Paste.query.filter_by(url_hash=url_hash).first()
+    paste = Paste.query.filter_by(url_hash=url_hash).first()
     
-    if not paste_instance:
+    if not paste:
         return 'Paste not found', 404
-    
-    if is_expired(paste_instance.expire_at):
+    if is_expired(paste.expire_at):
         return 'Paste is expired', 410
     
-    blob_content = read_txt(paste_instance.blob_url)
+    blob_content = read_txt(paste.blob_url)
     
-    comments = Comment.query.filter_by(paste_id=paste_instance.id).all()
+    comments = Comment.query.filter_by(paste_id=paste.id).all()
     comments_list = []
     for comment in comments:
         comments_list.append({
@@ -103,14 +102,15 @@ def get_paste(url_hash):
             "created_at": comment.created_at,
             "username": User.query.filter_by(id=comment.user_id).first().username
         })
-
-    user=User.query.filter_by(id=paste_instance.user_id).first()
+    
+    user = User.query.filter_by(id=paste.user_id).first()
+    username = 'anonymous' if user is None else user.username
     response_dict_data = {
-        "id": paste_instance.id,
-        "url_hash": paste_instance.url_hash,
-        "created_at": str(paste_instance.created_at),
-        "expire_at": str(paste_instance.expire_at),
-        "username": user.username,
+        "id": paste.id,
+        "url_hash": paste.url_hash,
+        "created_at": str(paste.created_at),
+        "expire_at": str(paste.expire_at),
+        "username": username,
         "content": blob_content,
         "comments": comments_list
     }
@@ -164,7 +164,7 @@ def create_comment():
     new_comment = Comment(
         content=content,
         created_at=datetime.utcnow(),
-        expire_at=expire_at,
+        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f'),
         user_id=User.query.filter_by(username=username).first().id,
         paste_id=paste_id
     )

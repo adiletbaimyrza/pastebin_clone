@@ -14,6 +14,7 @@ const GetPaste = () => {
   const [pasteExpireAt, setPasteExpireAt] = useState("");
   const [pasteUsername, setPasteUsername] = useState("");
   const [pasteId, setPasteId] = useState("");
+  const [expireAt, setExpireAt] = useState("");
 
   const [comment, setComment] = useState("");
   const [copied, setCopied] = useState("");
@@ -32,11 +33,11 @@ const GetPaste = () => {
       console.error('Failed to create comment: Missing paste id');
       return;
     }
-  
+
     const commentData = {
       content: comment,
       paste_id: pasteId,
-      expire_at: pasteExpireAt
+      expire_at: expireAt
     };
 
     fetch('/create_comment', {
@@ -49,7 +50,8 @@ const GetPaste = () => {
     })
     .then((response) => {
         if (response.ok) {
-            console.log("OK. Comment sent to Backend")
+            console.log("OK. Comment sent to Backend");
+            window.location.reload(); // Reload the page
         } else {
             console.error('Failed to create comment:', response.statusText);
         }
@@ -57,8 +59,6 @@ const GetPaste = () => {
     .catch((error) => {
         console.error('Error sending the request:', error);
     });
-
-    
   }
 
   useEffect(() => {
@@ -74,6 +74,7 @@ const GetPaste = () => {
           setPasteContent(responseData.content);
           setPasteCreatedAt(format(new Date(responseData.created_at), "MMMM d, yyyy HH:mm"));
           setPasteExpireAt(format(new Date(responseData.expire_at), "MMMM d, yyyy HH:mm"));
+          setExpireAt(response.data.expire_at);
           setPasteUsername(responseData.username);
           setComments(responseData.comments);
         } else {
@@ -88,7 +89,7 @@ const GetPaste = () => {
   return (
     <div className="main">
       <div className="post-nav">
-        <div className="post-nav-item">
+      <div className="post-nav-item">
           <TimeSVG />
           {pasteCreatedAt}
         </div>
@@ -102,10 +103,10 @@ const GetPaste = () => {
           <UserSVG />
           {pasteUsername}
         </div>
-
+        
         <CopyToClipboard text={pasteContent}>
           <button className="copy-button">
-            <CopySVG /> Copy
+            <CopySVG />
           </button>
         </CopyToClipboard>
       </div>
@@ -120,8 +121,8 @@ const GetPaste = () => {
             {comments.length > 0 ? (
               comments.map((comment, index) => (
                 <div key={index} className="comment">
-                  <p>{comment.text}</p>
-                  <p>By: {comment.author}</p>
+                  <p>{comment.content}</p>
+                  <p>By: {comment.username}</p>
                 </div>
               ))
             ) : (
@@ -131,7 +132,7 @@ const GetPaste = () => {
           
           {jwt ? (
             <div className="add-comment">
-            <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit}>
               <label className="add-comment-label">
                 Comment
                 <input
@@ -148,11 +149,9 @@ const GetPaste = () => {
               <button className="add-comment-button button" type="submit">
                 Add comment
               </button>
-            </form>
-          </div>
-          ) : <p>unauthorized to comment</p>
-          }
-          
+              </form>
+            </div>
+          ) : <p>unauthorized to comment</p>}
         </>
       ) : (
         <div>
