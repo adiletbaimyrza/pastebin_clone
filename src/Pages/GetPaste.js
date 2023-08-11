@@ -34,8 +34,9 @@ const GetPaste = () => {
     }
   
     const commentData = {
-      comment: comment,
-      paste_id: pasteId
+      content: comment,
+      paste_id: pasteId,
+      expire_at: pasteExpireAt
     };
 
     fetch('/create_comment', {

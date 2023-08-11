@@ -17,10 +17,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
-
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-jwt = JWTManager(app)
 
+jwt = JWTManager(app)
 db.init_app(app)
 
 with app.app_context():
@@ -39,20 +38,20 @@ def generate_hashes(quantity=1000):
                 db.session.add(new_hash_entry)
             else:
                 random_hash = generate_short_url_hash(str(uuid.uuid4()))
-
+    
     db.session.commit()
 
 
 def get_hash(when_quantity_lt=100) -> str:
     if Hash.query.count() < when_quantity_lt:
         generate_hashes()
-
+    
     hash_record = Hash.query.first()
     db.session.delete(hash_record)
     db.session.commit()
-
+    
     hash = hash_record.url_hash
-
+    
     return hash
 
 
@@ -63,61 +62,57 @@ def create_paste():
     user = None
     if username:
         user = User.query.filter_by(username=username).first()
-
+    
     jsonData = request.get_json()
+    
     minutes_to_live = jsonData.get('minutes_to_live')
     content = jsonData.get('content')
-
+    
+    new_hash = get_hash()
     new_paste = Paste(
-        hash=get_hash(),
+        url_hash=new_hash,
+        blob_url=create_blob_paste(f'{new_hash}.txt', content),
         created_at=datetime.utcnow(),
         expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_live),
-        username=user.username if user else "anonymous",
-        user_id=user.id if user else None
-    )
+        user_id=user.id if user else None)
     
-    blob_url = create_blob_paste(f'{new_paste.hash}.txt', content)
-    new_paste.blob_url = blob_url
-
     db.session.add(new_paste)
     db.session.commit()
-
-    return jsonify({'hash': new_paste.hash}), 201
+    
+    return jsonify({'hash': new_paste.url_hash}), 201
 
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
-    paste_instance = Paste.query.filter_by(hash=url_hash).first()
-
+    paste_instance = Paste.query.filter_by(url_hash=url_hash).first()
+    
     if not paste_instance:
-        print("Requested paste not found.")
         return 'Paste not found', 404
-
+    
     if is_expired(paste_instance.expire_at):
-        print("Requested paste has expired.")
         return 'Paste is expired', 410
-
+    
     blob_content = read_txt(paste_instance.blob_url)
-
+    
     comments = Comment.query.filter_by(paste_id=paste_instance.id).all()
     comments_list = []
     for comment in comments:
         comments_list.append({
             "id": comment.id,
+            "content": comment.content,
             "created_at": comment.created_at,
-            "comment": comment.content,
-            "user_id": comment.user_id
-            # Add other comment attributes here
+            "username": User.query.filter_by(id=comment.user_id).first().username
         })
 
+    user=User.query.filter_by(id=paste_instance.user_id).first()
     response_dict_data = {
         "id": paste_instance.id,
-        "hash": paste_instance.hash,
+        "url_hash": paste_instance.url_hash,
         "created_at": str(paste_instance.created_at),
         "expire_at": str(paste_instance.expire_at),
-        "username": paste_instance.username,
+        "username": user.username,
         "content": blob_content,
-        "comments": comments_list  # Include the list of comments
+        "comments": comments_list
     }
 
     return jsonify(response_dict_data), 200
@@ -162,13 +157,14 @@ def generate_token():
 @jwt_required()
 def create_comment():
     username = get_jwt_identity()
-    comment = request.json["comment"]
+    content = request.json["content"]
     paste_id = request.json["paste_id"]
+    expire_at = request.json["expire_at"]
     
     new_comment = Comment(
-        content=comment,
+        content=content,
         created_at=datetime.utcnow(),
-        
+        expire_at=expire_at,
         user_id=User.query.filter_by(username=username).first().id,
         paste_id=paste_id
     )
