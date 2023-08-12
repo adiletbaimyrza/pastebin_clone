@@ -18,7 +18,9 @@ class Paste(db.Model, fs_mixin):
     url_hash = db.Column(db.String(8), unique=True, nullable=False)          # url_hash max 8 chars
     blob_url = db.Column(db.String(256), unique=True, nullable=False)        # blob_url max 256 chars
     created_at = db.Column(db.DateTime, nullable=False)
-    expire_at = db.Column(db.DateTime, nullable=False)
+    expire_at = db.Column(db.DateTime, nullable=True)
+    delete_upon_seen = db.Column(db.Boolean, nullable=False, default=False)
+    never_delete = db.Column(db.Boolean, nullable=False, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     
     comments = db.relationship('Comment', backref='paste')
