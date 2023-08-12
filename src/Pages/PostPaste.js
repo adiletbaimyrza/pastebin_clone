@@ -5,11 +5,12 @@ import PlusSVG from '../SVGs/PlusSVG';
 const PostPaste = () => {
     const [content, setContent] = useState(null);                    // default null
     const [pasteUrlHash, setPasteUrlHash] = useState(null);          // default null
-    const [timeUnit, setTimeUnit] = useState('Minutes');             // default 'Minutes'
+    const [timeUnit, setTimeUnit] = useState('minutes');             // default 'Minutes'
     const [hideTimer, setHideTimer] = useState(false);               // default false
     const [timeValue, setTimeValue] = useState(10);                  // default 10
     const [deleteUponSeen, setDeleteUponSeen] = useState(false);     // default false
     const [neverDelete, setNeverDelete] = useState(false);           // default false
+    const [max, setMax] = useState(60);
 
     const jwt = localStorage.getItem('token');
 
@@ -25,18 +26,27 @@ const PostPaste = () => {
         if (event.target.value === 'never') {
             setHideTimer(true);
             setNeverDelete(true);
-            setTimeUnit(event.target.value);
+            setTimeUnit(null);
         }
         else if (event.target.value === 'delete-upon-seen') {
             setHideTimer(true);
             setDeleteUponSeen(true);
-            setTimeUnit(event.target.value);
+            setTimeUnit(null);
         }
         else {
             setTimeUnit(event.target.value);
             setHideTimer(false);
             setNeverDelete(false);
             setDeleteUponSeen(false);
+            if (event.target.value === 'Minutes') {
+                setMax(60);
+            }
+            else if (event.target.value === 'Hours') {
+                setMax(24);
+            }
+            else {
+                setMax(365);
+            }
         }
     };
 
@@ -115,7 +125,7 @@ const PostPaste = () => {
                                 <input className="timer-input"
                                     type="number"
                                     min="1"
-                                    max=""
+                                    max={max}
                                     value={timeValue}
                                     onChange={handleTimeValueChange}
                                 />
@@ -125,7 +135,20 @@ const PostPaste = () => {
                         )}
                     </>
                 ) : (
-                <></>
+                    <label className="timer-label">
+                    Timer
+                    <small className="small">
+                        ({timeUnit})
+                    </small>
+                    :
+                    <input className="timer-input"
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={timeValue}
+                        onChange={handleTimeValueChange}
+                    />
+                </label>
                 )}
                 <button
                     className="paste"

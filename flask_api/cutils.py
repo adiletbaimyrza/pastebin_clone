@@ -5,18 +5,28 @@ import base64
 from base64 import urlsafe_b64encode, urlsafe_b64decode, encode, decode
 
 
-def add_utc_minutes(utc_time: datetime, minutes_to_add: int) -> datetime:
-    # create a timedelta object representing duration in time
-    time_delta = timedelta(minutes=minutes_to_add)
+def add_utc_time(utc_time: datetime, time_unit: str, time_value: int):
+    if time_unit is None or time_value is None:
+        return None
+    
+    time_units_to_timedeltas = {
+        'minutes': timedelta(minutes=time_value),
+        'hours': timedelta(hours=time_value),
+        'days': timedelta(days=time_value)
+    }
+    
+    time_delta = time_units_to_timedeltas.get(time_unit)
 
-    # add timedelta duration to utc_time
     new_utc_time = utc_time + time_delta
 
     return new_utc_time
 
 
-def is_expired(expiration_time: datetime) -> bool:
+
+def is_expired(expiration_time) -> bool:
     # compare expiration_time to now
+    if expiration_time is None:
+        return False
     return True if expiration_time < datetime.utcnow() else False
 
 

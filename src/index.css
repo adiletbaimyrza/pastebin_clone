@@ -106,6 +106,14 @@ padding: 0.5rem 0.7rem 0.5rem 0.5rem;
 color: white;
 }
 
+.pastes, .paste-item {
+  text-decoration: none;
+}
+
+.link-no-text-d {
+  text-decoration: none;
+}
+
 .paste:hover {
   cursor: pointer;
   background-color: rgb(3, 68, 3);
@@ -161,6 +169,7 @@ color: white;
   background-color: #2b2b2b;
   border: solid rgb(65, 64, 64) 0.1px;
   padding: 1rem;
+  min-height: 10rem;
 }
 
 .outer {
@@ -290,6 +299,12 @@ text-decoration: underline;
 
 .left-col {
   padding: 1rem;
+  overflow: auto;
+  max-height: 35rem;
+  margin-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .time-icon {
@@ -312,11 +327,12 @@ text-decoration: underline;
 
 .add-comment-button {
   background: #026502;
-  border: none;
-  box-shadow: black 1px;
-  padding: 0.5rem 0.5rem 0rem 0.5rem;
-  box-shadow: 1px 1px 1px 1px #1e1e1e;
-  transition: 0.1s background ease-in-out;
+border: none;
+box-shadow: black 1px;
+padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+box-shadow: 1px 1px 1px 1px #1e1e1e;
+transition: 0.1s background ease-in-out;
+color: white;
 }
 
 .add-comment-button:hover {
@@ -358,4 +374,14 @@ margin: 0.5rem 0;
 
 .time-unit-select {
   padding: 0.5rem;
+}
+
+.paste-item {
+  background: #252525;
+padding: 1rem;
+margin: 1rem 0;
+}
+
+.paste-item-content {
+  color: rgb(203, 192, 192);
 }

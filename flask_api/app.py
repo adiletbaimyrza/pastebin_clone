@@ -2,13 +2,13 @@ import os
 import json
 import uuid
 from base64 import encode
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
 
 from models import db, Paste, Hash, User, Comment
-from cutils import add_utc_minutes, is_expired, generate_short_url_hash, create_blob_paste, read_txt
+from cutils import add_utc_time, is_expired, generate_short_url_hash, create_blob_paste, read_txt
 
 load_dotenv()
 
@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(hours=24)
 
 jwt = JWTManager(app)
 db.init_app(app)
@@ -59,27 +60,39 @@ def get_hash(when_quantity_lt=100) -> str:
 @jwt_required(optional=True)
 def create_paste():
     username = get_jwt_identity()
+    
     user = None
+    
     if username:
         user = User.query.filter_by(username=username).first()
     
     jsonData = request.get_json()
     
-    minutes_to_live = jsonData.get('minutes_to_live')
+    time_unit = jsonData.get('time_unit')
+    time_value = jsonData.get('time_value')
     content = jsonData.get('content')
+    delete_upon_seen = jsonData.get('delete_upon_seen')
+    never_delete = jsonData.get('never_delete')
     
     new_hash = get_hash()
+    
     new_paste = Paste(
         url_hash=new_hash,
         blob_url=create_blob_paste(f'{new_hash}.txt', content),
         created_at=datetime.utcnow(),
-        expire_at=add_utc_minutes(datetime.utcnow(), minutes_to_live),
+        expire_at=add_utc_time(
+            datetime.utcnow(),
+            time_unit=time_unit,
+            time_value=time_value
+        ),
+        delete_upon_seen=delete_upon_seen,
+        never_delete=never_delete,
         user_id=user.id if user else None)
     
     db.session.add(new_paste)
     db.session.commit()
     
-    return jsonify({'hash': new_paste.url_hash}), 201
+    return jsonify({'url_hash': new_paste.url_hash}), 201
 
 
 @app.get('/<string:url_hash>')
@@ -177,6 +190,7 @@ def create_comment():
 @app.get("/get_pastes")
 @jwt_required()
 def get_pastes():
+    print(get_jwt()['exp'])
     username = get_jwt_identity()
     user = User.query.filter_by(username=username).first()
     pastes = Paste.query.filter_by(user_id=user.id).all()

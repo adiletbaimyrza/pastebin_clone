@@ -44,14 +44,16 @@ const App = () => {
           <div className="left-col">
             {token && token !== "" && token !== undefined ? (
               <React.Fragment>
+
                 <div className="pastes">
                   {pastes.length > 0 ? (  // Check if pastes array is not empty
                     pastes.map((paste, index) => (
                       <div key={index} className="paste-item">
+                        <a className="link-no-text-d" href={`http://localhost:3000/${paste.url_hash}`}>
                         <p className="paste-item-content">{paste.content}</p>
                         <p className="comment-created_at">{paste.created_at}</p>
                         <p className="comment-created_at">{paste.expire_at}</p>
-                        <a href={`http://localhost:3000/${paste.url_hash}`}>link</a>
+                      </a>
 
                       </div>
                     ))
