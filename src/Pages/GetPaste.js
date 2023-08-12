@@ -124,8 +124,11 @@ const GetPaste = () => {
             {comments.length > 0 ? (
               comments.map((comment, index) => (
                 <div key={index} className="comment">
-                  <p>{comment.content}</p>
-                  <p>{comment.username}</p>
+                  <div className="comment-main">
+                  <p className="comment-content">{comment.content}</p>
+                  <p className="comment-username">{comment.username}</p>
+                  </div>
+                  <p className="comment-created_at">{comment.created_at}</p>
                 </div>
               ))
             ) : (

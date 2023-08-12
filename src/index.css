@@ -58,10 +58,11 @@ html, body, #root, .app, .app-container {
 
 }
 .timer-input {
-  width: 4rem;
   background-color: #2b2b2b;
   border: solid rgb(65, 64, 64) 0.1px;
   color: white;
+  padding: 0.5rem;
+margin-left: 0.7rem;
 }
 
 input[type=number]::-webkit-inner-spin-button {
@@ -70,6 +71,16 @@ input[type=number]::-webkit-inner-spin-button {
 
 .timer-input:focus {
   outline: solid rgb(79, 53, 53);
+}
+
+.timer-input:hover {
+
+}
+
+.timer-label {
+  display: flex;
+  padding:0 2rem;
+  align-items: center;
 }
 
 textarea:focus {
@@ -116,6 +127,11 @@ color: white;
   display: flex;
   justify-content: space-evenly;
   margin: 0.3rem;
+  align-items: center;
+}
+
+.paste-button-text {
+  white-space: nowrap;
 }
 
 .pastebin-icon {
@@ -127,6 +143,7 @@ color: white;
 .nav {
   display: flex;
   color: #ffffff;
+  text-decoration: none;
 }
 
 #logo-text {
@@ -226,6 +243,10 @@ input:focus {
   outline: solid rgb(79, 53, 53);
 }
 
+.button {
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .auth-button {
   background: rgb(2, 101, 2);
 border: none;
@@ -264,6 +285,11 @@ text-decoration: underline;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  padding: 1rem;
+}
+
+.left-col {
+  padding: 1rem;
 }
 
 .time-icon {
@@ -296,4 +322,40 @@ text-decoration: underline;
 .add-comment-button:hover {
   cursor: pointer;
   background-color:  rgb(3, 68, 3);
+}
+
+.comments {
+  color: aliceblue;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.comment {
+  display: flex;
+justify-content: space-between;
+border: #4d3434 solid 0.05rem;
+padding: 0.5rem;
+margin: 0.5rem 0;
+}
+
+.comment-content {
+
+}
+
+.comment-created_at {
+  font-size: 0.8rem;
+  color: #9d8059;
+}
+
+.comment-username {
+  font-size: 0.8rem;
+  color: #8794cf;
+}
+
+.comment-main {
+  margin-left: 1rem;
+}
+
+.time-unit-select {
+  padding: 0.5rem;
 }

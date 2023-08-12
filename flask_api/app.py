@@ -174,5 +174,28 @@ def create_comment():
     
     return "", 200
 
+@app.get("/get_pastes")
+@jwt_required()
+def get_pastes():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    pastes = Paste.query.filter_by(user_id=user.id).all()
+    pastes_list = []
+
+    for paste in pastes:
+        content = read_txt(paste.blob_url)[:100]
+        
+        if not is_expired(paste.expire_at):
+            
+            pastes_list.append({
+                "id": paste.id,
+                "content": content,
+                "created_at": paste.created_at,
+                "expire_at": paste.expire_at,
+                "url_hash": paste.url_hash,
+            })
+    
+    return jsonify(dict(pastes=pastes_list)), 200
+
 if __name__ == '__main__':
     app.run()
