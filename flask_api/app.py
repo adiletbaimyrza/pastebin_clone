@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-app.config['JWT_EXPIRATION_DELTA'] = timedelta(hours=24)
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(days=10)
 
 jwt = JWTManager(app)
 db.init_app(app)
@@ -177,7 +177,7 @@ def create_comment():
     new_comment = Comment(
         content=content,
         created_at=datetime.utcnow(),
-        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f'),
+        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f') if expire_at is not None else None,
         user_id=User.query.filter_by(username=username).first().id,
         paste_id=paste_id
     )
