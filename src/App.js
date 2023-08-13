@@ -17,7 +17,7 @@ const App = () => {
 
   const fetchPastes = async () => {
     try {
-      const response = await fetch("/get_pastes", {
+      const response = await fetch("/get_my_pastes", {
         headers: {
           Authorization: `Bearer ${token}` // Include the JWT token in the Authorization header
         }

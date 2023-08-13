@@ -183,10 +183,9 @@ def create_comment():
     
     return "", 200
 
-@app.get("/get_pastes")
+@app.get("/get_my_pastes")
 @jwt_required()
-def get_pastes():
-    print(get_jwt()['exp'])
+def get_my_pastes():
     username = get_jwt_identity()
     user = User.query.filter_by(username=username).first()
     pastes = Paste.query.filter_by(user_id=user.id).all()
