@@ -8,8 +8,6 @@ const PostPaste = () => {
     const [timeUnit, setTimeUnit] = useState('minutes');             // default 'Minutes'
     const [hideTimer, setHideTimer] = useState(false);               // default false
     const [timeValue, setTimeValue] = useState(10);                  // default 10
-    const [deleteUponSeen, setDeleteUponSeen] = useState(false);     // default false
-    const [neverDelete, setNeverDelete] = useState(false);           // default false
     const [max, setMax] = useState(60);
 
     const jwt = localStorage.getItem('token');
@@ -19,25 +17,14 @@ const PostPaste = () => {
     };
 
     const handleTimeValueChange = (event) => {
-        setTimeValue(event.target.value);
+
+        const newTimeValue = Math.max(1, Math.min(60, event.target.value));
+        setTimeValue(newTimeValue);
     };
 
     const handleTimeUnitChange = (event) => {
-        if (event.target.value === 'never') {
-            setHideTimer(true);
-            setNeverDelete(true);
-            setTimeUnit(null);
-        }
-        else if (event.target.value === 'delete-upon-seen') {
-            setHideTimer(true);
-            setDeleteUponSeen(true);
-            setTimeUnit(null);
-        }
-        else {
             setTimeUnit(event.target.value);
             setHideTimer(false);
-            setNeverDelete(false);
-            setDeleteUponSeen(false);
             if (event.target.value === 'Minutes') {
                 setMax(60);
             }
@@ -47,16 +34,13 @@ const PostPaste = () => {
             else {
                 setMax(365);
             }
-        }
     };
 
     const handlePostClick = () => {
         const pasteData = {
             content: content,
             time_unit: timeUnit,
-            time_value: timeValue,
-            delete_upon_seen: deleteUponSeen,
-            never_delete: neverDelete
+            time_value: timeValue
         };
 
         if (jwt) {
@@ -108,11 +92,9 @@ const PostPaste = () => {
                 {jwt && jwt !== "" && jwt !== undefined ? (
                     <>
                         <select className='time-unit-select' value={timeUnit} onChange={handleTimeUnitChange}>
-                            <option className="time-unit-item" value="delete-upon-seen">Delete upon seen</option>
                             <option className="time-unit-item" value="minutes">Minutes</option>
                             <option className="time-unit-item" value="hours">Hours</option>
                             <option className="time-unit-item" value="days">Days</option>
-                            <option className="time-unit-item" value="never">Never</option>
                         </select>
 
                         {hideTimer === false ? (
@@ -136,19 +118,19 @@ const PostPaste = () => {
                     </>
                 ) : (
                     <label className="timer-label">
-                    Timer
-                    <small className="small">
-                        ({timeUnit})
-                    </small>
-                    :
-                    <input className="timer-input"
-                        type="number"
-                        min="1"
-                        max="60"
-                        value={timeValue}
-                        onChange={handleTimeValueChange}
-                    />
-                </label>
+                        Timer
+                        <small className="small">
+                            ({timeUnit})
+                        </small>
+                        :
+                        <input className="timer-input"
+                            type="number"
+                            min="1"
+                            max="60"
+                            value={timeValue}
+                            onChange={handleTimeValueChange}
+                        />
+                    </label>
                 )}
                 <button
                     className="paste"
@@ -159,8 +141,6 @@ const PostPaste = () => {
             </div>
 
             <textarea className="textarea"
-                rows="10"
-                cols="50"
                 value={content}
                 onChange={handleContentChange}
                 placeholder="Paste your text here..."
