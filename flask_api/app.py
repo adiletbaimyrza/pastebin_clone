@@ -71,8 +71,6 @@ def create_paste():
     time_unit = jsonData.get('time_unit')
     time_value = jsonData.get('time_value')
     content = jsonData.get('content')
-    delete_upon_seen = jsonData.get('delete_upon_seen')
-    never_delete = jsonData.get('never_delete')
     
     new_hash = get_hash()
     
@@ -85,8 +83,6 @@ def create_paste():
             time_unit=time_unit,
             time_value=time_value
         ),
-        delete_upon_seen=delete_upon_seen,
-        never_delete=never_delete,
         user_id=user.id if user else None)
     
     db.session.add(new_paste)
@@ -177,7 +173,7 @@ def create_comment():
     new_comment = Comment(
         content=content,
         created_at=datetime.utcnow(),
-        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f') if expire_at is not None else None,
+        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f'),
         user_id=User.query.filter_by(username=username).first().id,
         paste_id=paste_id
     )
