@@ -6,7 +6,9 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode, encode, decode
 
 
 def add_utc_time(utc_time: datetime, time_unit: str, time_value: int):
-    if time_unit is None or time_value is None:
+    if time_unit is None:
+        return None
+    if time_value is None:
         return None
     
     time_units_to_timedeltas = {
