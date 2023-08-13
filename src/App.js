@@ -59,11 +59,10 @@ const App = () => {
                     pastes.map((paste, index) => (
                       <div key={index} className="paste-item">
                         <a className="link-no-text-d" href={`http://localhost:3000/${paste.url_hash}`}>
-                        <p className="paste-item-content">{paste.content}</p>
-                        <p className="comment-created_at">{paste.created_at}</p>
-                        <p className="comment-created_at">{paste.expire_at}</p>
+                        <p className="paste-item-content">{paste.content}...</p>
+                        <p className="comment-created_at">created at: {paste.created_at}</p>
+                        <p className="comment-created_at">expired_at: {paste.expire_at}</p>
                       </a>
-
                       </div>
                     ))
                   ) : (
