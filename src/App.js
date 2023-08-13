@@ -19,9 +19,16 @@ const App = () => {
     try {
       const response = await fetch("/get_my_pastes", {
         headers: {
-          Authorization: `Bearer ${token}` // Include the JWT token in the Authorization header
+          Authorization: `Bearer ${token}` 
         }
       });
+  
+      if (response.status === 401) {
+        // If the response is 401 Unauthorized, remove the token from local storage
+        localStorage.removeItem('token');
+        return; // Exit the function, don't proceed with setting pastes
+      }
+  
       const data = await response.json();
       const pastesArray = data.pastes;
       setPastes(pastesArray);
@@ -29,6 +36,8 @@ const App = () => {
       console.error("Error fetching pastes:", error);
     }
   };
+  
+  
 
   useEffect(() => {
     if (token && token !== "" && token !== undefined) {

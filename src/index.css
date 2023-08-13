@@ -292,8 +292,8 @@ text-decoration: underline;
 
 .right-col {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  flex-direction: column;
   padding: 1rem;
 }
 
@@ -384,4 +384,12 @@ margin: 1rem 0;
 
 .paste-item-content {
   color: rgb(203, 192, 192);
+}
+
+.notification {
+  border: green 1px solid;
+padding: 1rem;
+font-size: 1.1rem;
+background: #0d0b0b;
+color: white;
 }

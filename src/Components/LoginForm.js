@@ -3,19 +3,17 @@ import React, { useState } from "react";
 const LoginForm = (props) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showNotification, setShowNotification] = useState(false);
 
     const handleUsernameChange = (event) => {
-        console.log("Handling username change");
         setUsername(event.target.value);
     };
 
     const handlePasswordChange = (event) => {
-        console.log("Handling password change");
         setPassword(event.target.value);
     };
 
     const handleSubmit = (event) => {
-        console.log("Handling form submission");
         event.preventDefault();
 
         const userData = {
@@ -23,7 +21,6 @@ const LoginForm = (props) => {
             password: password
         };
 
-        console.log("Sending fetch request with user data:", userData);
         fetch('/token', {
             method: 'POST',
             headers: {
@@ -40,7 +37,11 @@ const LoginForm = (props) => {
             if (data) {
                 console.log("Received data:", data);
                 localStorage.setItem('token', data.access_token);
-                window.location.href = "/";
+                setShowNotification(true); // Display the success notification
+                setTimeout(() => {
+                    setShowNotification(false); // Hide the notification after 3 seconds
+                    window.location.href = "/"; // Redirect to home page
+                }, 3000);
             }
         }).catch((error) => {
             console.error('Error sending the request:', error);
@@ -48,20 +49,21 @@ const LoginForm = (props) => {
     };
 
     const handleLogout = () => {
-        console.log("Handling logout");
         localStorage.removeItem("token");
         window.location.href = "/";
     };
 
     const token = localStorage.getItem('token');
-    console.log("Token:", token);
 
     return (
         <React.Fragment>
+            {showNotification && (
+                <div className="notification">Logged in successfully!</div>
+            )}
             {token && token !== "" && token !== undefined ? (
-                    <button onClick={handleLogout} className="logout-button button">
-                        Log out
-                    </button>
+                <button onClick={handleLogout} className="logout-button button">
+                    Log out
+                </button>
             ) : (
                 <div className="auth-form-container">
                     <h2 className="auth-form-header">Log in</h2>

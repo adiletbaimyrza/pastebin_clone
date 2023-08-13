@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const RegisterForm = (props) => {
     const [username, setUsername] = useState("");
@@ -6,6 +6,18 @@ const RegisterForm = (props) => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [email, setEmail] = useState("");
     const [registered, setRegistered] = useState("");
+    const [showNotification, setShowNotification] = useState(false);
+
+    useEffect(() => {
+        if (registered) {
+            setShowNotification(true);
+            const notificationTimeout = setTimeout(() => {
+                setShowNotification(false);
+            }, 3000);
+
+            return () => clearTimeout(notificationTimeout);
+        }
+    }, [registered]);
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
@@ -24,16 +36,14 @@ const RegisterForm = (props) => {
     };
 
     const handleSubmit = (event) => {
-        event.preventDefault(); // Prevent the default form submission behavior
+        event.preventDefault();
 
-        // Prepare the JSON data to be sent
         const userData = {
             username: username,
             email: email,
             password: password
         };
 
-        // Send the JSON data to the '/register' endpoint
         fetch('/register', {
             method: 'POST',
             headers: {
@@ -43,11 +53,12 @@ const RegisterForm = (props) => {
         })
             .then((response) => {
                 if (response.ok) {
-                    // User registered successfully
                     console.log('User registered successfully!');
                     setRegistered("User registered successfully!");
+                    setTimeout(() => {
+                        props.onFormSwitch("login");
+                    }, 3000);
                 } else {
-                    // Handle error cases, e.g., display an error message
                     console.error('Failed to create User:', response.statusText);
                 }
             })
@@ -59,6 +70,11 @@ const RegisterForm = (props) => {
     return (
         <div className="auth-form-container">
             <h2 className="auth-form-header">Register</h2>
+            {showNotification && (
+                <div className="notification">
+                    Registration successful! Redirecting to login...
+                </div>
+            )}
             <form className="auth-form" onSubmit={handleSubmit}>
                 <label className="label username-label">
                     Username

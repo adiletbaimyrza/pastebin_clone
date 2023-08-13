@@ -10,7 +10,7 @@ const PostPaste = () => {
     const [timeValue, setTimeValue] = useState(10);                  // default 10
     const [max, setMax] = useState(60);
 
-    const jwt = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
     const handleContentChange = (event) => {
         setContent(event.target.value); 
@@ -43,12 +43,12 @@ const PostPaste = () => {
             time_value: timeValue
         };
 
-        if (jwt) {
+        if (token) {
             fetch('/create_paste', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwt}`,
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify(pasteData),
             })
@@ -89,7 +89,7 @@ const PostPaste = () => {
         <div className="main">
             {pasteUrlHash && <a href={`http://localhost:3000/${pasteUrlHash}`} target='_blank'>localhost:3000/{pasteUrlHash}</a>}
             <div className="paste-nav">
-                {jwt && jwt !== "" && jwt !== undefined ? (
+                {token && token !== "" && token !== undefined ? (
                     <>
                         <select className='time-unit-select' value={timeUnit} onChange={handleTimeUnitChange}>
                             <option className="time-unit-item" value="minutes">Minutes</option>
