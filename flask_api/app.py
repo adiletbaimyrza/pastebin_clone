@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-app.config['JWT_EXPIRATION_DELTA'] = timedelta(days=10)
+app.config['JWT_TOKEN_EXPIRES'] = timedelta(hours=24)
 
 jwt = JWTManager(app)
 db.init_app(app)
