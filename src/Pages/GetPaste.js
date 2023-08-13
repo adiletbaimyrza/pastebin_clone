@@ -20,7 +20,7 @@ const GetPaste = () => {
   const [copied, setCopied] = useState("");
   const [comments, setComments] = useState([]);
 
-  const jwt = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
 
   const handleCommentChange = (event) => {
     setComment(event.target.value);
@@ -44,7 +44,7 @@ const GetPaste = () => {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwt}`,
+          'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(commentData),
     })
@@ -136,7 +136,7 @@ const GetPaste = () => {
             )}
           </div>
           
-          {jwt ? (
+          {token ? (
             <div className="add-comment">
               <form onSubmit={handleSubmit}>
               <label className="add-comment-label">
