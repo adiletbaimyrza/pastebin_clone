@@ -131,7 +131,11 @@ const GetPaste = () => {
             </div>
           ) : (
             <div className="paste-content">
-              {/* Render other paste content */}
+              <div className="outer">
+              <div className="content">
+                <pre>{pasteContent}</pre>
+              </div>
+            </div>
             </div>
           )}
 

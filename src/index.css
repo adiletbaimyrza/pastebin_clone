@@ -45,6 +45,12 @@ html, body, #root, .app, .app-container {
   grid-template-columns: 3fr 7fr 5fr;
 }
 
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr; /* Set to a single column for mobile */
+  }
+}
+
 .textarea {
   width:100%;
   resize: none;
@@ -114,6 +120,10 @@ color: white;
   text-decoration: none;
 }
 
+.paste-item:hover{
+  background-color: #353535;
+}
+
 .paste:hover {
   cursor: pointer;
   background-color: rgb(3, 68, 3);
@@ -124,6 +134,7 @@ color: white;
   border-radius: 0.5rem;
   margin-bottom: 5rem;
   padding: 1rem;
+  box-shadow: 1px 1px 1px 1px #1e1e1e;
 }
 
 * {
@@ -138,6 +149,14 @@ color: white;
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  .paste-nav {
+    flex-direction: column; /* Stack items vertically for mobile */
+    justify-content: center; /* Center items vertically */
+    text-align: center; /* Center text */
+  }
+}
+
 .paste-button-text {
   white-space: nowrap;
 }
@@ -149,6 +168,12 @@ color: white;
 }
 
 .nav {
+  display: flex;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav-link {
   display: flex;
   color: #ffffff;
   text-decoration: none;
@@ -211,6 +236,7 @@ box-shadow: 1px 1px 1px 1px #1e1e1e;
 }
 
 .auth-form-container {
+  box-shadow: 1px 1px 1px 1px #1e1e1e;
   display: flex;
   flex-direction: column;
   width: 80%;
@@ -374,16 +400,22 @@ margin: 0.5rem 0;
 
 .time-unit-select {
   padding: 0.5rem;
+  background: #2b2b2b;
+color: white;
+border: 0.01px #4f4e4e solid;
 }
 
 .paste-item {
   background: #252525;
 padding: 1rem;
 margin: 1rem 0;
+box-shadow: 1px 1px 1px 1px #1e1e1e;
 }
 
 .paste-item-content {
   color: rgb(203, 192, 192);
+  border: #6b6f73 1px solid;
+  padding: 0.5rem;
 }
 
 .notification {
