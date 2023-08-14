@@ -19,7 +19,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pastebin.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MIGRATIONS'] = False
 app.config['DEBUG'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
@@ -41,36 +41,6 @@ except Exception as e:
     container_client = blob_service_client.create_container(container_name)
 
 
-def generate_hashes(quantity=1000):
-    print(f'Generation of {quantity} hashes started.')
-    
-    for _ in range(quantity):
-        random_hash = generate_short_url_hash(str(uuid.uuid4()))
-        unique_hash = None
-        while unique_hash is None:
-            if not Hash.query.filter_by(url_hash=random_hash).first():
-                unique_hash = random_hash
-                new_hash_entry = Hash(url_hash=unique_hash)
-                db.session.add(new_hash_entry)
-            else:
-                random_hash = generate_short_url_hash(str(uuid.uuid4()))
-    
-    db.session.commit()
-
-
-def get_hash(when_quantity_lt=100) -> str:
-    if Hash.query.count() < when_quantity_lt:
-        generate_hashes()
-    
-    hash_record = Hash.query.first()
-    db.session.delete(hash_record)
-    db.session.commit()
-    
-    hash = hash_record.url_hash
-    
-    return hash
-
-
 @app.post('/create_paste')
 @jwt_required(optional=True)
 def create_paste():
@@ -86,11 +56,9 @@ def create_paste():
     time_unit = jsonData.get('time_unit')
     time_value = jsonData.get('time_value')
     content = jsonData.get('content')
-    
-    new_hash = get_hash()
-    
+        
     new_paste = Paste(
-        url_hash=new_hash,
+        url_hash=generate_short_url_hash(str(uuid.uuid4())),
         blob_url='',
         created_at=datetime.utcnow(),
         expire_at=add_utc_time(
