@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+
 /* ----- CSS Reset ----- */
 *,
 *::before,
@@ -37,6 +38,7 @@ h6 {
 #__next {
   isolation: isolate;
 }
+
 /* ----- CSS Reset ----- */
 
 html,
@@ -77,6 +79,7 @@ body,
   padding: 1rem;
   color: white;
 }
+
 .timer-input {
   background-color: #2b2b2b;
   border: solid rgb(65, 64, 64) 0.1px;
@@ -91,9 +94,6 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .timer-input:focus {
   outline: solid rgb(79, 53, 53);
-}
-
-.timer-input:hover {
 }
 
 .timer-label {
@@ -117,6 +117,10 @@ textarea:focus {
   border: none;
   padding: 0.5rem 0.7rem 0.5rem 0.5rem;
   color: white;
+}
+
+.paste-link {
+  font-size: 1.2rem;
 }
 
 .pastes,
@@ -159,8 +163,8 @@ textarea:focus {
 
 @media (max-width: 768px) {
   .paste-nav {
-    flex-direction: column; 
-    justify-content: center; 
+    flex-direction: column;
+    justify-content: center;
     text-align: center;
   }
 }
@@ -170,10 +174,6 @@ textarea:focus {
 }
 
 /* SVGs start */
-
-.icon {
-
-}
 
 .pastebin-icon {
   height: 2.5rem;
@@ -348,6 +348,7 @@ input:focus {
 #no-pastes {
   color: rgb(164, 164, 164);
 }
+
 .right-col {
   display: flex;
   align-items: center;
