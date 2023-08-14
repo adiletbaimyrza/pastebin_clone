@@ -3,11 +3,10 @@ import React, { useState } from 'react';
 import PlusSVG from '../SVGs/PlusSVG';
 
 const PostPaste = () => {
-    const [content, setContent] = useState(null);                    // default null
-    const [pasteUrlHash, setPasteUrlHash] = useState(null);          // default null
-    const [timeUnit, setTimeUnit] = useState('minutes');             // default 'Minutes'
-    const [hideTimer, setHideTimer] = useState(false);               // default false
-    const [timeValue, setTimeValue] = useState(10);                  // default 10
+    const [content, setContent] = useState(null);
+    const [pasteUrlHash, setPasteUrlHash] = useState(null);
+    const [timeUnit, setTimeUnit] = useState('minutes');
+    const [timeValue, setTimeValue] = useState(10);
     const [max, setMax] = useState(60);
 
     const token = localStorage.getItem('token');
@@ -17,18 +16,17 @@ const PostPaste = () => {
     };
 
     const handleTimeValueChange = (event) => {
-
-        const newTimeValue = Math.max(1, Math.min(60, event.target.value));
+        const newTimeValue = Math.max(1, Math.min(max, event.target.value));
         setTimeValue(newTimeValue);
     };
 
     const handleTimeUnitChange = (event) => {
             setTimeUnit(event.target.value);
-            setHideTimer(false);
-            if (event.target.value === 'Minutes') {
+
+            if (event.target.value === 'minutes') {
                 setMax(60);
             }
-            else if (event.target.value === 'Hours') {
+            else if (event.target.value === 'hours') {
                 setMax(24);
             }
             else {
@@ -96,25 +94,21 @@ const PostPaste = () => {
                             <option className="time-unit-item" value="hours">Hours</option>
                             <option className="time-unit-item" value="days">Days</option>
                         </select>
-
-                        {hideTimer === false ? (
-                            <label className="timer-label">
-                                Timer
-                                <small className="small">
-                                    ({timeUnit})
-                                </small>
-                                :
-                                <input className="timer-input"
-                                    type="number"
-                                    min="1"
-                                    max={max}
-                                    value={timeValue}
-                                    onChange={handleTimeValueChange}
-                                />
-                            </label>
-                        ) : (
-                            <></>
-                        )}
+                        
+                        <label className="timer-label">
+                            Timer
+                            <small className="small">
+                                ({timeUnit})
+                            </small>
+                            :
+                            <input className="timer-input"
+                                type="number"
+                                min="1"
+                                max={max}
+                                value={timeValue}
+                                onChange={handleTimeValueChange}
+                            />
+                        </label>
                     </>
                 ) : (
                     <label className="timer-label">

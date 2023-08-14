@@ -314,6 +314,7 @@ text-decoration: underline;
 
 .logout-button:hover {
   background-color: rgb(118, 34, 24);
+  cursor: pointer;
 }
 
 .right-col {
@@ -399,10 +400,14 @@ margin: 0.5rem 0;
 }
 
 .time-unit-select {
-  padding: 0.5rem;
+  padding: 0.7rem;
   background: #2b2b2b;
 color: white;
 border: 0.01px #4f4e4e solid;
+}
+
+.time-unit-select:hover {
+  cursor: pointer;
 }
 
 .paste-item {
