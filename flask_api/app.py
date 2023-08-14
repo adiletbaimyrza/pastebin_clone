@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
 
 from models import db, Paste, Hash, User, Comment
-from cutils import add_utc_time, is_expired, generate_short_url_hash, read_txt
+from cutils import add_utc_time, is_expired, generate_short_url_hash
 
 from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
