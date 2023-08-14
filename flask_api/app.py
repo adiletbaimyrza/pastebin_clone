@@ -116,8 +116,7 @@ def get_paste(url_hash):
     blob_content = redis_client.get(paste.blob_url)
     if not blob_content:
         blob_content = read_txt(paste.blob_url)
-        print('blob_content set to Cache')     # to be deleted
-        redis_client.setex(paste.blob_url, 20, blob_content)
+        redis_client.setex(paste.blob_url, 360, blob_content)
     
     comments = Comment.query.filter_by(paste_id=paste.id).all()
     comments_list = []
@@ -143,7 +142,6 @@ def get_paste(url_hash):
     
     response_json_data = json.dumps(response_dict_data)
     redis_client.setex(paste.url_hash, 20, response_json_data)
-    print("paste_data set to Cache")   # to be deleted
 
     return jsonify(response_dict_data), 200
 
