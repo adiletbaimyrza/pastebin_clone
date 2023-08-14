@@ -14,7 +14,8 @@ const GetPaste = () => {
   const [pasteExpireAt, setPasteExpireAt] = useState("");
   const [pasteUsername, setPasteUsername] = useState("");
   const [pasteId, setPasteId] = useState("");
-  const [expireAt, setExpireAt] = useState("");
+
+  const [commentExpireAt, setCommentExpireAt] = useState("");
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
 
@@ -28,14 +29,14 @@ const GetPaste = () => {
     event.preventDefault();
 
     if (!pasteId) {
-      console.error("Failed to create comment: Missing paste id");
+      console.error("Failed to create comment. Missing pasteId.");
       return;
     }
 
     const commentData = {
       content: comment,
       paste_id: pasteId,
-      expire_at: expireAt,
+      expire_at: commentExpireAt,
     };
 
     try {
@@ -51,13 +52,13 @@ const GetPaste = () => {
       );
 
       if (response.status === 200) {
-        console.log("OK. Comment sent to Backend");
-        window.location.reload(); // Reload the page
+        console.log("200 OK. Comment sent to Backend.");
+        window.location.reload();
       } else {
-        console.error("Failed to create comment:", response.statusText);
+        console.error("Failed to create comment. RESPONSE TEXT:", response.statusText);
       }
     } catch (error) {
-      console.error("Error sending the request:", error);
+      console.error("Error sending the request. ERROR:", error);
     }
   };
 
@@ -78,7 +79,7 @@ const GetPaste = () => {
           setPasteExpireAt(
             format(new Date(responseData.expire_at), "MMMM d, yyyy HH:mm")
           );
-          setExpireAt(responseData.expire_at);
+          setCommentExpireAt(responseData.expire_at);
           setPasteUsername(responseData.username);
           setComments(responseData.comments);
         } else if (response.status === 410) {
@@ -88,11 +89,11 @@ const GetPaste = () => {
           setPasteUsername("");
           setComments([]);
         } else {
-          console.error("Failed to get paste:", response.statusText);
+          console.error("Failed to get paste. RESPONSE TEXT:", response.statusText);
         }
       })
       .catch((error) => {
-        console.error("Error sending the request:", error);
+        console.error("Error sending the request. ERROR:", error);
       });
   }, []);
 
@@ -123,22 +124,14 @@ const GetPaste = () => {
 
       {pasteContent ? (
         <>
-          {pasteContent === "Paste is expired" ? (
+          <div className="paste-content">
             <div className="outer">
               <div className="content">
                 <pre>{pasteContent}</pre>
               </div>
             </div>
-          ) : (
-            <div className="paste-content">
-              <div className="outer">
-              <div className="content">
-                <pre>{pasteContent}</pre>
-              </div>
-            </div>
-            </div>
-          )}
-
+          </div>
+          
           <div className="comments">
             {comments.length > 0 ? (
               comments.map((comment) => (
