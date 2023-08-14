@@ -9,7 +9,9 @@ from flask import Flask, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
 
 from models import db, Paste, Hash, User, Comment
-from cutils import add_utc_time, is_expired, generate_short_url_hash, create_blob_paste, read_txt
+from cutils import add_utc_time, is_expired, generate_short_url_hash, read_txt
+
+from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
 
 redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
@@ -28,6 +30,16 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+container_name = "pastes"
+blob_service_client = BlobServiceClient.from_connection_string(conn_str=connect_str)
+try:
+    container_client = blob_service_client.get_container_client(container=container_name)
+    container_client.get_container_properties()
+except Exception as e:
+    container_client = blob_service_client.create_container(container_name)
+
 
 def generate_hashes(quantity=1000):
     print(f'Generation of {quantity} hashes started.')
@@ -79,7 +91,7 @@ def create_paste():
     
     new_paste = Paste(
         url_hash=new_hash,
-        blob_url=create_blob_paste(f'{new_hash}.txt', content),
+        blob_url='',
         created_at=datetime.utcnow(),
         expire_at=add_utc_time(
             datetime.utcnow(),
@@ -88,6 +100,13 @@ def create_paste():
         ),
         user_id=user.id if user else None)
     
+    blob_name = f"{new_paste.url_hash}.txt"
+    blob_client = blob_service_client.get_blob_client(
+        container=container_name, blob=blob_name)
+    blob_client.upload_blob(content, content_settings=ContentSettings(
+        content_type='text/plain'))
+
+    new_paste.blob_url = blob_client.url
     db.session.add(new_paste)
     db.session.commit()
     
@@ -115,7 +134,8 @@ def get_paste(url_hash):
     
     blob_content = redis_client.get(paste.blob_url)
     if not blob_content:
-        blob_content = read_txt(paste.blob_url)
+        blob_client = BlobClient.from_blob_url(paste.blob_url)
+        blob_content = blob_client.download_blob().readall().decode("utf-8")
         redis_client.setex(paste.blob_url, 360, blob_content)
     
     comments = Comment.query.filter_by(paste_id=paste.id).all()
