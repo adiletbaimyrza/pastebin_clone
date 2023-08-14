@@ -59,11 +59,11 @@ const RegisterForm = (props) => {
                         props.onFormSwitch("login");
                     }, 3000);
                 } else {
-                    console.error('Failed to create User:', response.statusText);
+                    console.error('Failed to create User. RESONSE TEXT:', response.statusText);
                 }
             })
             .catch((error) => {
-                console.error('Error sending the request:', error);
+                console.error('Error sending the request. ERROR:', error);
             });
     };
 
