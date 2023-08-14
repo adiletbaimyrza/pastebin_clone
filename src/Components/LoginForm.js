@@ -31,20 +31,19 @@ const LoginForm = (props) => {
             if (response.ok) {
                 return response.json();
             } else {
-                console.error('Failed to log in User:', response.statusText);
+                console.error('Failed to log in. RESPONSE:', response.statusText);
             }
         }).then((data) => {
             if (data) {
-                console.log("Received data:", data);
                 localStorage.setItem('token', data.access_token);
-                setShowNotification(true); // Display the success notification
+                setShowNotification(true);
                 setTimeout(() => {
-                    setShowNotification(false); // Hide the notification after 3 seconds
-                    window.location.href = "/"; // Redirect to home page
-                }, 3000);
+                    setShowNotification(false);
+                    window.location.href = "/";
+                }, 2000);
             }
         }).catch((error) => {
-            console.error('Error sending the request:', error);
+            console.error('Error sending the request. ERROR:', error);
         });
     };
 
