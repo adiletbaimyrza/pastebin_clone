@@ -43,27 +43,3 @@ def generate_short_url_hash(id: str, length=8) -> str:
     short_hash = hash[-length:].decode()
 
     return short_hash
-
-
-def create_blob_paste(file_name: str, text: str) -> str:
-    # Get the current directory where the main.py file is located
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-
-    # Create a new directory named "txt_files" if it doesn't exist
-    pastes_directory = os.path.join(current_directory, "pastes")
-
-    # Create the full path for the new .txt file inside the "txt_files" directory
-    file_path = os.path.join(pastes_directory, file_name)
-
-    # Write some content to the file (optional)
-    with open(file_path, 'w') as file:
-        file.write(text)
-
-    return file_path
-
-
-def read_txt(file_path):
-    with open(file_path, 'r') as file:
-        # Read the entire content of the file using read()
-        file_content = file.read()
-        return file_content
