@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import redis
 from base64 import encode
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -9,6 +10,8 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 
 from models import db, Paste, Hash, User, Comment
 from cutils import add_utc_time, is_expired, generate_short_url_hash, create_blob_paste, read_txt
+
+redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 load_dotenv()
 
@@ -93,6 +96,16 @@ def create_paste():
 
 @app.get('/<string:url_hash>')
 def get_paste(url_hash):
+    cache_json_data = redis_client.get(url_hash)
+    if cache_json_data:
+        cache_dict_data = json.loads(cache_json_data)
+        if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S.%f')):
+            print("Cache hit. Retrieved data from Cache.")
+            return jsonify(cache_dict_data), 200
+        else:
+            print("Cache expired. The paste is no longer available.")
+            return 'Paste is expired', 410
+        
     paste = Paste.query.filter_by(url_hash=url_hash).first()
     
     if not paste:
@@ -100,7 +113,11 @@ def get_paste(url_hash):
     if is_expired(paste.expire_at):
         return 'Paste is expired', 410
     
-    blob_content = read_txt(paste.blob_url)
+    blob_content = redis_client.get(paste.blob_url)
+    if not blob_content:
+        blob_content = read_txt(paste.blob_url)
+        print('blob_content set to Cache')     # to be deleted
+        redis_client.setex(paste.blob_url, 20, blob_content)
     
     comments = Comment.query.filter_by(paste_id=paste.id).all()
     comments_list = []
@@ -123,6 +140,10 @@ def get_paste(url_hash):
         "content": blob_content,
         "comments": comments_list
     }
+    
+    response_json_data = json.dumps(response_dict_data)
+    redis_client.setex(paste.url_hash, 20, response_json_data)
+    print("paste_data set to Cache")   # to be deleted
 
     return jsonify(response_dict_data), 200
 
