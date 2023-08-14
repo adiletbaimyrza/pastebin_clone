@@ -9,6 +9,7 @@ import RegisterForm from "./Components/RegisterForm";
 const App = () => {
   const [currentForm, setCurrentForm] = useState("login");
   const [pastes, setPastes] = useState([]);
+
   const token = localStorage.getItem('token');
 
   const toggleForm = (formName) => {
@@ -24,21 +25,18 @@ const App = () => {
       });
   
       if (response.status === 401) {
-        // If the response is 401 Unauthorized, remove the token from local storage
         localStorage.removeItem('token');
-        return; // Exit the function, don't proceed with setting pastes
+        return;
       }
   
       const data = await response.json();
       const pastesArray = data.pastes;
       setPastes(pastesArray);
     } catch (error) {
-      console.error("Error fetching pastes:", error);
+      console.error("Error fetching pastes. ERROR:", error);
     }
   };
   
-  
-
   useEffect(() => {
     if (token && token !== "" && token !== undefined) {
       fetchPastes();
@@ -49,13 +47,13 @@ const App = () => {
     <BrowserRouter>
       <div className="app-container">
         <NavBar />
+        
         <div className="app">
           <div className="left-col">
             {token && token !== "" && token !== undefined ? (
               <React.Fragment>
-
                 <div className="pastes">
-                  {pastes.length > 0 ? (  // Check if pastes array is not empty
+                  {pastes.length > 0 ? (
                     pastes.map((paste, index) => (
                       <div key={index} className="paste-item">
                         <a className="link-no-text-d" href={`http://localhost:3000/${paste.url_hash}`}>
@@ -66,7 +64,7 @@ const App = () => {
                       </div>
                     ))
                   ) : (
-                    <p>No pastes available.</p>
+                    <p id="no-pastes">No pastes available.</p>
                   )}
                 </div>
               </React.Fragment>
