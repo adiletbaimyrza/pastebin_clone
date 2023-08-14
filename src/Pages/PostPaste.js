@@ -85,7 +85,7 @@ const PostPaste = () => {
 
     return (
         <div className="main">
-            {pasteUrlHash && <a href={`http://localhost:3000/${pasteUrlHash}`} target='_blank'>localhost:3000/{pasteUrlHash}</a>}
+            {pasteUrlHash && <div className='paste-link-container'><a className="paste-link" href={`http://localhost:3000/${pasteUrlHash}`} target='_blank'>localhost:3000/{pasteUrlHash}</a></div>}
             <div className="paste-nav">
                 {token && token !== "" && token !== undefined ? (
                     <>
