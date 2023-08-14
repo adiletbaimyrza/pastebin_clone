@@ -2,13 +2,12 @@ import os
 import json
 import uuid
 import redis
-from base64 import encode
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager, get_jwt
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
-from models import db, Paste, Hash, User, Comment
+from models import db, Paste, User, Comment
 from cutils import add_utc_time, is_expired, generate_short_url_hash
 
 from azure.storage.blob import BlobServiceClient, BlobClient, ContentSettings
@@ -86,7 +85,7 @@ def get_paste(url_hash):
     cache_json_data = redis_client.get(url_hash)
     if cache_json_data:
         cache_dict_data = json.loads(cache_json_data)
-        if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S.%f')):
+        if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S')):
             return jsonify(cache_dict_data), 200
         else:
             return 'Paste is expired', 410
@@ -110,7 +109,7 @@ def get_paste(url_hash):
         comments_list.append({
             "id": comment.id,
             "content": comment.content,
-            "created_at": comment.created_at,
+            "created_at": str(comment.created_at),
             "username": User.query.filter_by(id=comment.user_id).first().username
         })
     
@@ -178,7 +177,7 @@ def create_comment():
     new_comment = Comment(
         content=content,
         created_at=datetime.utcnow(),
-        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S.%f'),
+        expire_at=datetime.strptime(expire_at, '%Y-%m-%d %H:%M:%S'),
         user_id=User.query.filter_by(username=username).first().id,
         paste_id=paste_id
     )
@@ -197,13 +196,17 @@ def get_my_pastes():
     pastes_list = []
 
     for paste in pastes:
-        content = read_txt(paste.blob_url)[:100]
+        blob_content = redis_client.get(paste.blob_url)
+        if not blob_content:
+            blob_client = BlobClient.from_blob_url(paste.blob_url)
+            blob_content = blob_client.download_blob().readall().decode("utf-8")
+            redis_client.setex(paste.blob_url, 360, blob_content)
         
         if not is_expired(paste.expire_at):
             
             pastes_list.append({
                 "id": paste.id,
-                "content": content,
+                "content": blob_content,
                 "created_at": paste.created_at,
                 "expire_at": paste.expire_at,
                 "url_hash": paste.url_hash,
