@@ -119,10 +119,8 @@ def get_paste(url_hash):
     if cache_json_data:
         cache_dict_data = json.loads(cache_json_data)
         if not is_expired(datetime.strptime(cache_dict_data['expire_at'], '%Y-%m-%d %H:%M:%S.%f')):
-            print("Cache hit. Retrieved data from Cache.")
             return jsonify(cache_dict_data), 200
         else:
-            print("Cache expired. The paste is no longer available.")
             return 'Paste is expired', 410
         
     paste = Paste.query.filter_by(url_hash=url_hash).first()
