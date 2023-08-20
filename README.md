@@ -1,4 +1,4 @@
-# Pastbin.com Clone WebApp
+# Pastebin.com Clone WebApp
 ![webapp-scheenshot-1](readme_blob/webapp-screenshot-1.png)
 
 A scalable full-stack web application built using Python micro-framework Flask and JavaScript framework React. React was used to manage and show data on the front-end as well as to send requests to the back-end. The back-end was built as a regular RESTful API, which utilizes cloud solutions like Azure Blob Storage and AWS RDS (MySQL). 
